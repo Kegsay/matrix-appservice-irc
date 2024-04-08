@@ -91,8 +91,8 @@ export class IRCConnectionError extends Error {
 export class ConnectionInstance {
     public dead = false;
     private state: "created"|"connecting"|"connected" = "created";
-    private pingRateTimerId: NodeJS.Timer|null = null;
-    private clientSidePingTimeoutTimerId: NodeJS.Timer|null = null;
+    private pingRateTimerId: NodeJS.Timeout|null = null;
+    private clientSidePingTimeoutTimerId: NodeJS.Timeout|null = null;
     // eslint-disable-next-line no-use-before-define
     private connectDefer: Defer<ConnectionInstance>;
     public onDisconnect?: (reason: string) => void;

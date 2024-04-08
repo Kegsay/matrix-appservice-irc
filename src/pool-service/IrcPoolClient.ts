@@ -29,7 +29,7 @@ export class IrcPoolClient extends (EventEmitter as unknown as new () => TypedEm
     private readonly connections = new Map<ClientId, Promise<RedisIrcConnection>>();
     public shouldRun = true;
     private missedHeartbeats = 0;
-    private heartbeatInterval?: NodeJS.Timer;
+    private heartbeatInterval?: NodeJS.Timeout;
     private commandReader: RedisCommandReader;
     cmdReader: Redis;
 

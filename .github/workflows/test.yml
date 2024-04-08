@@ -23,7 +23,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-20.04
-    container: node:18
+    container: node:20
     steps:
       - uses: actions/checkout@v3
       - run: yarn --strict-semver --frozen-lockfile
@@ -32,7 +32,7 @@ jobs:
   test:
     strategy:
       matrix:
-        node-version: [18, 20]
+        node-version: [20]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
@@ -43,9 +43,9 @@ jobs:
       - run: yarn --strict-semver --frozen-lockfile
       - run: yarn test
 
-  test-18-postgres:
+  test-postgres:
     runs-on: ubuntu-20.04
-    container: node:18
+    container: node:20
     services:
       postgres:
         image: postgres:latest

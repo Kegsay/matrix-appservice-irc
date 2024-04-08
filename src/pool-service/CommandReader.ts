@@ -12,7 +12,7 @@ export class RedisCommandReader {
     private shouldRun = true;
     private commandStreamId = "$"
     private supportsMinId = false;
-    private trimInterval?: NodeJS.Timer;
+    private trimInterval?: NodeJS.Timeout;
 
     constructor(
         private readonly redis: Redis,

@@ -11,6 +11,7 @@ import { expect } from "@jest/globals";
 import dns from 'node:dns';
 import fs from "node:fs/promises";
 import { WriteStream, createWriteStream } from "node:fs";
+import { DEFAULTS as MatrixHandlerDefaults } from "../../src/bridge/MatrixHandler";
 // Needed to make tests work on GitHub actions. Node 17+ defaults
 // to IPv6, and the homerunner domain resolves to IPv6, but the
 // runtime doesn't actually support IPv6 🤦
@@ -22,12 +23,14 @@ const DEFAULT_PORT = parseInt(process.env.IRC_TEST_PORT ?? '6667', 10);
 const DEFAULT_ADDRESS = process.env.IRC_TEST_ADDRESS ?? "127.0.0.1";
 const IRCBRIDGE_TEST_REDIS_URL = process.env.IRCBRIDGE_TEST_REDIS_URL;
 
+
 interface Opts {
     matrixLocalparts?: string[];
     ircNicks?: string[];
     timeout?: number;
     config?: Partial<BridgeConfig>,
     traceToFile?: boolean,
+    shortReplyTresholdSeconds?: number,
 }
 
 const traceFilePath = '.e2e-traces';
@@ -234,6 +237,10 @@ export class IrcBridgeE2ETest {
             ircService: {
                 ircHandler: {
                     powerLevelGracePeriodMs: 0,
+                },
+                matrixHandler: {
+                    ...MatrixHandlerDefaults,
+                    shortReplyTresholdSeconds: opts.shortReplyTresholdSeconds ?? 0,
                 },
                 servers: {
                     localhost: {

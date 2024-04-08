@@ -12,7 +12,6 @@ A wishlist of IRC networks to be bridged is being collected [in a github issue](
 | Tweakers.net | `#_tweakers_#channame:irc.snt.utwente.nl` | [`@tweakers:irc.snt.utwente.nl`]   | [`#tweakers-irc:utwente.io`]   | [SNT]                                     |
 | irchighway   | `#irchighway_#channame:eggy.cc`           | [`@appservice-irc:eggy.cc`]        | [`#eggster:eggy.cc`]           | [Eggy](http://eggy.cc/)                   |
 | W3C          | `#_w3c_#channame:matrix.org`              | [`@w3c-irc:matrix.org`]            | [`#irc:matrix.org`]            | [Matrix.org]                              |
-| libera.chat  | `#channame:libera.chat`                   | [`@appservice:libera.chat`]        | [`#libera-matrix:libera.chat`] | [Matrix.org]                              |
 | LibertaCasa  | `#channame:liberta.casa`                  | [`@lunatic:liberta.casa`]          | [`#help:liberta.casa`]         | [LibertaCasa](https://liberta.casa)
 | hackint      | `#channame:hackint.org`                   | [`@appservice-irc:hackint.org`]    | [`#hackint:hackint.org`]       | [hackint](https://hackint.org/)
 
@@ -50,6 +49,7 @@ A wishlist of IRC networks to be bridged is being collected [in a github issue](
 * The Espernet bridge was shut down after the 2019 matrix.org network breach.
 * The Moznet IRC network has been shut down. They now run their own Matrix homeserver at [chat.mozilla.org](https://chat.mozilla.org/) 🎉.
 * The freenode IRC bridge offically was shut down on 2021-12-20.
+* The Libera Chat IRC bridge [was shut down on 2023-11-28](https://matrix.org/blog/2023/11/28/shutting-down-bridge-to-libera-chat/).
 
 ### Footnotes
 

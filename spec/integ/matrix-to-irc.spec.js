@@ -244,7 +244,7 @@ describe("Matrix-to-IRC message bridging", function() {
             room_id: roomMapping.roomId,
             sender: repliesUser.id,
             event_id: "$original:bar.com",
-            origin_server_ts: 1_000,
+            origin_server_ts: Date.now(),
             type: "m.room.message"
         });
         const p = env.ircMock._whenClient(roomMapping.server, testUser.nick, "say",
@@ -274,7 +274,7 @@ describe("Matrix-to-IRC message bridging", function() {
             },
             sender: testUser.id,
             room_id: roomMapping.roomId,
-            origin_server_ts: 2_000,
+            origin_server_ts: Date.now(),
             type: "m.room.message"
         });
         await p;
@@ -290,7 +290,7 @@ describe("Matrix-to-IRC message bridging", function() {
             room_id: roomMapping.roomId,
             sender: repliesUser.id,
             event_id: "$original:bar.com",
-            origin_server_ts: 1_000,
+            origin_server_ts: Date.now(),
             type: "m.room.message"
         });
         const p = env.ircMock._whenClient(roomMapping.server, testUser.nick, "say",
@@ -320,7 +320,7 @@ describe("Matrix-to-IRC message bridging", function() {
             },
             sender: testUser.id,
             room_id: roomMapping.roomId,
-            origin_server_ts: 1_000_000,
+            origin_server_ts: Date.now() + 1_000_000,
             type: "m.room.message"
         });
         await p;
@@ -381,7 +381,7 @@ describe("Matrix-to-IRC message bridging", function() {
             room_id: roomMapping.roomId,
             sender: repliesUser.id,
             event_id: "$original:bar.com",
-            origin_server_ts: 1_000,
+            origin_server_ts: Date.now(),
             type: "m.room.message"
         });
         const p = env.ircMock._whenClient(roomMapping.server, testUser.nick, "say",
@@ -411,7 +411,7 @@ describe("Matrix-to-IRC message bridging", function() {
             },
             sender: testUser.id,
             room_id: roomMapping.roomId,
-            origin_server_ts: 1_000_000,
+            origin_server_ts: Date.now() + 1_000_000,
             type: "m.room.message"
         });
         await p;
@@ -465,7 +465,7 @@ describe("Matrix-to-IRC message bridging", function() {
             room_id: roomMapping.roomId,
             sender: repliesUser.id,
             event_id: "$first:bar.com",
-            origin_server_ts: 1_000,
+            origin_server_ts: Date.now(),
             type: "m.room.message"
         })
 
@@ -484,7 +484,7 @@ describe("Matrix-to-IRC message bridging", function() {
             room_id: roomMapping.roomId,
             sender: repliesUser.id,
             event_id: "$second:bar.com",
-            origin_server_ts: 1_000_000,
+            origin_server_ts: Date.now() + 1_000_000,
             type: "m.room.message"
         });
 
@@ -517,7 +517,7 @@ describe("Matrix-to-IRC message bridging", function() {
             },
             sender: testUser.id,
             room_id: roomMapping.roomId,
-            origin_server_ts: 2_000_000,
+            origin_server_ts: Date.now() + 2_000_000,
             type: "m.room.message"
         });
 

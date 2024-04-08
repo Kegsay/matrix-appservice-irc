@@ -42,14 +42,17 @@ export async function runSchema(connection: PoolClient) {
             // No servers to migrate?
             throw Error("No client_configs found with ipv6 addresses, but counter was found");
         }
-        else if (serverConfigsRes.rowCount > 1) {
+        else if (serverConfigsRes.rowCount! > 1) {
             log.warn("More than one IPv6 server configured, starting both ipv6 counters from the same value.");
         }
         // Because we cannot determine which IRC network(s) are using the existing counter
         // (owing to a bug where we treated the counter as global across all networks), this assumes
         // that both networks start from the same counter value.
         const [statement, values] = domainSetToValues(serverConfigsRes.rows.map(d => d.domain), existingCounter);
-        await connection.query(`INSERT INTO ipv6_counter (count, homeserver, server) VALUES ${statement}`, values);
+        await connection.query(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            `INSERT INTO ipv6_counter (count, homeserver, server) VALUES ${statement}`, values as any[]
+        );
     }
 
     await connection.query(`

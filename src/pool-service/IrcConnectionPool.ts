@@ -52,7 +52,7 @@ export class IrcConnectionPool {
     private commandStreamId = "$";
     private metricsServer?: Server;
     private shouldRun = true;
-    private heartbeatTimer?: NodeJS.Timer;
+    private heartbeatTimer?: NodeJS.Timeout;
     private readonly commandReader: RedisCommandReader;
 
     constructor(private readonly config: typeof Config) {

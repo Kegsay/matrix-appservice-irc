@@ -95,7 +95,7 @@ export class BridgedClient extends EventEmitter {
     private connectDefer: promiseutil.Defer<void>;
     public readonly log: BridgedClientLogger;
     private cachedOperatorNicksInfo: {[channel: string]: GetNicksResponseOperators} = {};
-    private idleTimeout: NodeJS.Timer|null = null;
+    private idleTimeout: NodeJS.Timeout|null = null;
     private whoisPendingNicks: Set<string> = new Set();
     private state: State = {
         status: BridgedClientStatus.CREATED

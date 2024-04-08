@@ -8,7 +8,7 @@ RUN git clone https://github.com/matrix-org/freebindfree.git
 RUN cd freebindfree && make
 
 # Typescript build
-FROM node:18 as builder
+FROM node:20 as builder
 
 WORKDIR /build
 
@@ -22,7 +22,7 @@ RUN yarn --strict-semver --frozen-lockfile
 RUN rm -rf node_modules && yarn cache clean && yarn install --production
 
 # Runtime container image
-FROM node:18-slim
+FROM node:20-slim
 
 RUN apt-get update && apt-get install -y sipcalc iproute2 openssl --no-install-recommends
 RUN rm -rf /var/lib/apt/lists/*

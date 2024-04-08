@@ -90,10 +90,8 @@ export async function runBridge(
             environment: config.sentry.environment,
             serverName: config.sentry.serverName,
         });
-        Sentry.configureScope((scope) => {
-            const firstNetwork = Object.keys(config.ircService.servers)[0];
-            scope.setTag("irc_network", firstNetwork);
-        });
+        const firstNetwork = Object.keys(config.ircService.servers)[0];
+        Sentry.getCurrentScope().setTag("irc_network", firstNetwork);
     }
     // configure global stuff for the process
     if (config.ircService.logging) {
@@ -127,7 +125,7 @@ export async function runBridge(
     }
 
     await ircBridge.run(port);
-    Sentry.captureMessage("Bridge has started", Sentry.Severity.Info);
+    Sentry.captureMessage("Bridge has started", 'info');
     return ircBridge;
 }
 

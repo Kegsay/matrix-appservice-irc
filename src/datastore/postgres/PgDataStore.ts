@@ -453,7 +453,8 @@ export class PgDataStore implements DataStore, ProvisioningStore {
                     "server"
                 ],
             ),
-            [counter, homeserver || "*", server.domain],
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            [counter, homeserver || "*", server.domain] as any[],
         );
     }
 
@@ -548,7 +549,8 @@ export class PgDataStore implements DataStore, ProvisioningStore {
         };
         const statement = PgDataStore.BuildUpsertStatement(
             "client_config", "ON CONSTRAINT cons_client_config_unique", Object.keys(parameters));
-        await this.pgPool.query(statement, Object.values(parameters));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await this.pgPool.query(statement, Object.values(parameters) as any[]);
     }
 
 
@@ -650,7 +652,7 @@ export class PgDataStore implements DataStore, ProvisioningStore {
         if (res.rowCount === 0) {
             return undefined;
         }
-        else if (res.rowCount > 1) {
+        else if (res.rowCount! > 1) {
             log.error("getMatrixUserByUsername returned %s results for %s on %s", res.rowCount, username, domain);
         }
         return new MatrixUser(res.rows[0].user_id, res.rows[0].data);
@@ -673,7 +675,8 @@ export class PgDataStore implements DataStore, ProvisioningStore {
             "user_id",
             "ts",
         ]);
-        await this.pgPool.query(statement, [userId, Date.now()]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await this.pgPool.query(statement, [userId, Date.now()] as any[]);
     }
 
     public async getLastSeenTimeForUsers(): Promise<{ user_id: string; ts: number }[]> {
@@ -705,17 +708,19 @@ export class PgDataStore implements DataStore, ProvisioningStore {
             "room_id",
             "visibility",
         ]);
-        await this.pgPool.query(statement, [roomId, visibility === "public"]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await this.pgPool.query(statement, [roomId, visibility === "public"] as any[]);
         log.info(`setRoomVisibility ${roomId} => ${visibility}`);
     }
 
     public async isUserDeactivated(userId: string): Promise<boolean> {
         const res = await this.pgPool.query(`SELECT user_id FROM deactivated_users WHERE user_id = $1`, [userId]);
-        return res.rowCount > 0;
+        return res.rowCount! > 0;
     }
 
     public async deactivateUser(userId: string) {
-        await this.pgPool.query("INSERT INTO deactivated_users VALUES ($1, $2)", [userId, Date.now()]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await this.pgPool.query("INSERT INTO deactivated_users VALUES ($1, $2)", [userId, Date.now()] as any[]);
     }
 
     public async ensureSchema() {
