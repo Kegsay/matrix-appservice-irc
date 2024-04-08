@@ -62,7 +62,6 @@ export interface MatrixHandlerConfig {
     ignoreFunctionalMembersInAdminRooms: boolean;
 }
 
-const DEFAULTS: MatrixHandlerConfig = {
 export const DEFAULTS: MatrixHandlerConfig = {
     eventCacheSize: 4096,
     replySourceMaxLength: 32,
