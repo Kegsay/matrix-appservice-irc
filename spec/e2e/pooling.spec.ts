@@ -2,7 +2,7 @@ import { TestIrcServer } from "matrix-org-irc";
 import { IrcBridgeE2ETest } from "../util/e2e-test";
 import { describe, it } from "@jest/globals";
 
-const describeif = IrcBridgeE2ETest.usingRedis ? describe : describe;
+const describeif = IrcBridgeE2ETest.usingRedis ? describe : describe.skip;
 
 describeif('Connection pooling', () => {
     let testEnv: IrcBridgeE2ETest;
