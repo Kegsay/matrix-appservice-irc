@@ -3,7 +3,7 @@ import { IrcBridgeE2ETest } from "../util/e2e-test";
 import { describe, expect, it } from "@jest/globals";
 
 
-describe.skip('Reply handling', () => {
+describe('Reply handling', () => {
     let testEnv: IrcBridgeE2ETest;
     async function setupTestEnv(shortReplyTresholdSeconds: number) {
         testEnv = await IrcBridgeE2ETest.createTestEnv({
