@@ -2,6 +2,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  reporters: [['github-actions', {silent: false}], 'summary'],
   transformIgnorePatterns: ['<rootDir>/node_modules/'],
   testTimeout: 60000,
   transform: {

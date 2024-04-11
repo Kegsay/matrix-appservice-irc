@@ -3,6 +3,7 @@ name: Build docs
 on:
   pull_request:
   push:
+    branches: ["develop", "release-*"]
 
 jobs:
   build:

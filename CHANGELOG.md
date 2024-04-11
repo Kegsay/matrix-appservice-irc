@@ -1,3 +1,37 @@
+2.0.0 (2024-04-08)
+==================
+
+**Note**: This release drops support for Node 18. The minimum required version is now 20+.
+
+Bugfixes
+--------
+
+- Fix Redis <=6.2 failing to clear the command queue in pooling mode. ([\#1763](https://github.com/matrix-org/matrix-appservice-irc/issues/1763))
+- Fix GitHub CI docker builds failing for community PRs. ([\#1767](https://github.com/matrix-org/matrix-appservice-irc/issues/1767))
+
+
+Improved Documentation
+----------------------
+
+- Mention that the libera.chat bridge has since been shut down. ([\#1784](https://github.com/matrix-org/matrix-appservice-irc/issues/1784))
+
+
+Deprecations and Removals
+-------------------------
+
+- Drop `dynamicChannels.groupId` config option. Groups were unstable and are no longer supported by any Matrix implementations. ([\#1772](https://github.com/matrix-org/matrix-appservice-irc/issues/1772))
+
+
+Internal Changes
+----------------
+
+- Remove some build-time dependencies from the runtime dependency list. ([\#1758](https://github.com/matrix-org/matrix-appservice-irc/issues/1758))
+- Add option to ignore "functional members" when checking if an admin room contains two users. ([\#1782](https://github.com/matrix-org/matrix-appservice-irc/issues/1782))
+- Fixup types for Timers so the bridge works with newer node versions. ([\#1788](https://github.com/matrix-org/matrix-appservice-irc/issues/1788))
+- Update dependencies. ([\#1798](https://github.com/matrix-org/matrix-appservice-irc/issues/1798))
+- Add tests for various forms of rich replies. ([\#1799](https://github.com/matrix-org/matrix-appservice-irc/issues/1799))
+
+
 1.0.1 (2023-07-31)
 ==================
 

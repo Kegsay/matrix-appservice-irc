@@ -366,14 +366,14 @@ export class IrcBridgeE2ETest {
     }
 
     public async tearDown(): Promise<void> {
-        await Promise.allSettled([
-            this.ircBridge?.kill(),
-            this.ircTest.tearDown(),
-            this.homeserver?.users.map(c => c.client.stop()),
-            this.homeserver && destroyHS(this.homeserver.id),
-            this.dropDatabase(),
-        ]);
+        // This is specifically ordered this way so that
+        // it's closed in dependency order.
+        await this.ircBridge?.kill();
+        await this.ircTest.tearDown();
+        await this.homeserver?.users.map(c => c.client.stop());
+        await (this.homeserver && destroyHS(this.homeserver.id));
         await this.pool?.close();
+        await this.dropDatabase();
         if (this.traceLog) {
             this.traceLog.close();
         }

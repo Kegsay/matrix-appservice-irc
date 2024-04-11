@@ -13,8 +13,6 @@
     "useUnknownInCatchVariables": false,
      /* matrix-js-sdk throws up errors */
     "skipLibCheck": true,
-    "module": "Node16",
-    "moduleResolution": "Node16"
   },
   "include": [
     "src/**/*"

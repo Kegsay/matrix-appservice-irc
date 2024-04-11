@@ -1,2 +1,0 @@
-Fix Redis <=6.2 failing to clear the command queue in pooling mode.
-

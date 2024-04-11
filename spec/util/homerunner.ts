@@ -3,6 +3,7 @@ import { createHash, createHmac } from "crypto";
 import { Homerunner } from "homerunner-client";
 import { default as crossFetch } from 'cross-fetch';
 import { E2ETestMatrixClient } from "./e2e-test";
+import { delay } from "../../src/promiseutil";
 
 const HOMERUNNER_IMAGE = process.env.HOMERUNNER_IMAGE || 'complement-synapse';
 export const DEFAULT_REGISTRATION_SHARED_SECRET = (
@@ -69,28 +70,41 @@ export async function createHS(localparts: string[] = [], workerId: number): Pro
         SenderLocalpart: AppserviceConfig.senderLocalpart,
         RateLimited: false,
     };
-
-    const blueprintResponse = await homerunner.create({
-        base_image_uri: HOMERUNNER_IMAGE,
-        blueprint: {
-            Name: blueprint,
-            Homeservers: [{
-                Name: AppserviceConfig.id,
-                ApplicationServices: [{
-                    ...asRegistration,
-                    URL: `http://host.docker.internal:${AppserviceConfig.port}`,
-                }],
-                Users: localparts.map(localpart => ({Localpart: localpart, DisplayName: localpart})),
-            }],
+    let blueprintResponse: Awaited<ReturnType<Homerunner.Client["create"]>>|undefined;
+    let retries = 0;
+    do {
+        try {
+            blueprintResponse = await homerunner.create({
+                base_image_uri: HOMERUNNER_IMAGE,
+                blueprint: {
+                    Name: blueprint,
+                    Homeservers: [{
+                        Name: AppserviceConfig.id,
+                        ApplicationServices: [{
+                            ...asRegistration,
+                            URL: `http://host.docker.internal:${AppserviceConfig.port}`,
+                        }],
+                        Users: localparts.map(localpart => ({Localpart: localpart, DisplayName: localpart})),
+                    }],
+                }
+            });
         }
-    });
+        catch (ex) {
+            console.warn("Failed to create deployment", ex);
+            retries++;
+            if (retries >= 5) {
+                throw ex;
+            }
+            await delay(1000);
+        }
+    } while (!blueprintResponse)
     const [homeserverName, homeserver] = Object.entries(blueprintResponse.homeservers)[0];
     const users = Object.entries(homeserver.AccessTokens).map(([userId, accessToken]) => ({
         userId: userId,
         accessToken,
         deviceId: homeserver.DeviceIDs[userId],
         client: new E2ETestMatrixClient(homeserver.BaseURL, accessToken),
-    }));
+    })).filter(u => u.userId !== `@${AppserviceConfig.senderLocalpart}:${homeserverName}`);
 
     // Start syncing proactively.
     await Promise.all(users.map(u => u.client.start()));
