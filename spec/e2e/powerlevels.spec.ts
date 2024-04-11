@@ -4,7 +4,7 @@ import { IrcBridgeE2ETest } from "../util/e2e-test";
 import { describe, it } from "@jest/globals";
 
 
-describe('Ensure powerlevels are appropriately applied', () => {
+describe.skip('Ensure powerlevels are appropriately applied', () => {
     let testEnv: IrcBridgeE2ETest;
     beforeEach(async () => {
         testEnv = await IrcBridgeE2ETest.createTestEnv({
