@@ -90,7 +90,7 @@ export async function createHS(localparts: string[] = [], workerId: number): Pro
         accessToken,
         deviceId: homeserver.DeviceIDs[userId],
         client: new E2ETestMatrixClient(homeserver.BaseURL, accessToken),
-    }));
+    })).filter(u => u.userId !== `@${AppserviceConfig.senderLocalpart}:${homeserverName}`);
 
     // Start syncing proactively.
     await Promise.all(users.map(u => u.client.start()));
