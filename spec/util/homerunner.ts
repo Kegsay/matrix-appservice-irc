@@ -88,7 +88,8 @@ export async function createHS(localparts: string[] = [], workerId: number): Pro
                     }],
                 }
             });
-        } catch (ex) {
+        }
+        catch (ex) {
             console.warn("Failed to create deployment", ex);
             retries++;
             if (retries >= 5) {
