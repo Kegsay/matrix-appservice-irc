@@ -414,7 +414,7 @@ export class MatrixHandler {
      */
     private _onMemberEvent(req: BridgeRequest, event: OnMemberEventData) {
         if (event.content.membership === 'join') {
-            this.memberJoinTs.set(`${event.room_id}/${event.state_key}`, event.origin_server_ts ?? Date.now());
+            this.memberJoinTs.set(`${event.room_id}/${event.state_key}`, Date.now());
         }
         else {
             this.memberJoinTs.delete(`${event.room_id}/${event.state_key}`);
