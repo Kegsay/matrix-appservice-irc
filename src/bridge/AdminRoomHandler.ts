@@ -428,7 +428,7 @@ export class AdminRoomHandler {
             const keyword = args[0];
 
             // keyword could be a failed server or a malformed command
-            if (!keyword.match(/^[A-Z]+$/)) {
+            if (!keyword.match(/^[A-Za-z]+$/)) {
                 // if not a domain OR is only word (which implies command)
                 if (!keyword.match(/^[a-z0-9:\.-]+$/) || args.length === 1) {
                     throw new Error(`Malformed command: ${keyword}`);
