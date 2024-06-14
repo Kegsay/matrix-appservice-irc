@@ -1175,8 +1175,8 @@ export class MatrixHandler {
             if (codeBlockMatch) {
                 const type = codeBlockMatch[1] ? ` ${codeBlockMatch[1]}` : '';
                 event.content = {
-                    msgtype: "m.emote",
-                    body:    `sent a${type} code block: ${httpUrl}`
+                    ...event.content,
+                    body:    `${httpUrl}`
                 };
             }
             else {
@@ -1207,7 +1207,7 @@ export class MatrixHandler {
             // Modify the event to become a truncated version of the original
             //  the truncation limits the number of lines sent to lineLimit.
 
-            const msg = '\n...(truncated)';
+            const msg = '\n(truncated)';
 
             const sendingEvent: MatrixMessageEvent = { ...event,
                 content: {

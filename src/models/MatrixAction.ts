@@ -220,12 +220,12 @@ export class MatrixAction {
                 }
 
                 if (filename) {
-                    text = `${fileSize} < ${url} >`;
+                    text = `${url} ${fileSize}`;
                 }
                 else {
                     fileSize = fileSize ? ` ${fileSize}` : "";
                     // If not a filename, print the body
-                    text = `${event.content.body}${fileSize} < ${url} >`;
+                    text = `${url} ${event.content.body}${fileSize}`;
                 }
             }
         }
