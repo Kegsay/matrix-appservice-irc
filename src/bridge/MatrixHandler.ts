@@ -67,7 +67,7 @@ export const DEFAULTS: MatrixHandlerConfig = {
     replySourceMaxLength: 32,
     shortReplyTresholdSeconds: 5 * 60,
     shortReplyTemplate: "$NICK: $REPLY",
-    longReplyTemplate: "<$NICK> \"$ORIGINAL\" <- $REPLY",
+    longReplyTemplate: "$NICK: \"$ORIGINAL\" <- $REPLY",
     truncatedMessageTemplate: "(full message at <$URL>)",
     ignoreFunctionalMembersInAdminRooms: false,
 };
