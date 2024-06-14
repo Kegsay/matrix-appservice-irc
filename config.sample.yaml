@@ -339,7 +339,7 @@ ircService:
       ircClients:
         # The template to apply to every IRC client nick. This MUST have either
         # $DISPLAY or $USERID or $LOCALPART somewhere in it.
-        # Optional. Default: "M-$DISPLAY". Example: "M-Alice".
+        # Optional. Default: "$DISPLAY[m]". Example: "Alice[m]".
         nickTemplate: "$DISPLAY[m]"
         # True to allow virtual IRC clients to change their nick on this server
         # by issuing !nick <server> <nick> commands to the IRC AS bot.
