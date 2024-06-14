@@ -89,12 +89,12 @@ const COMMANDS: {[command: string]: Command|Heading} = {
     'Actions': { heading: true },
     "cmd": {
         example: `!cmd [irc.example.net] COMMAND [arg0 [arg1 [...]]]`,
-        summary: "Issue a raw IRC command. These will not produce a reply." +
+        summary: "Issue a raw IRC command. These will not produce a reply. " +
                 "(Note that the command must be all uppercase.)",
     },
     "feature": {
         example: `!feature feature-name [true/false/default]`,
-        summary: `Enable, disable or default a feature's status for your account.` +
+        summary: `Enable, disable or default a feature's status for your account. ` +
                 `Will display the current feature status if true/false/default not given.`,
     },
     "join": {
