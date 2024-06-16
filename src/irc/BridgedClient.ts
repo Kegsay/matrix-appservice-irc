@@ -738,9 +738,9 @@ export class BridgedClient extends EventEmitter {
                     `Nick '${nick}' must start with a letter or special character (dash is not a special character).`
                 );
             }
-            // Add arbitrary letter prefix. This is important for guest user
+            // Add arbitrary prefix. This is important for guest user
             // IDs which are all numbers.
-            n = "M" + n;
+            n = "`" + n;
         }
 
         if (state.status === BridgedClientStatus.CONNECTED) {
