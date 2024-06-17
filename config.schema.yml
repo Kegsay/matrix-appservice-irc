@@ -169,6 +169,8 @@ properties:
                         type: "string"
                     shortReplyTresholdSeconds:
                         type: "integer"
+                    selfReplyTemplate:
+                        type: "string"
                     ignoreFunctionalMembersInAdminRooms:
                         type: "boolean"
             mediaProxy:

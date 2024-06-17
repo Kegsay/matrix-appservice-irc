@@ -55,6 +55,8 @@ export interface MatrixHandlerConfig {
     shortReplyTemplate: string;
     // Format of replies sent a while after the original message
     longReplyTemplate: string;
+    // format of replies where the sender of the original message is the same as the sender of the reply
+    selfReplyTemplate: string;
     // Format of the text explaining why a message is truncated and pastebinned
     truncatedMessageTemplate: string;
     // Ignore io.element.functional_members members joining admin rooms.
@@ -68,6 +70,7 @@ export const DEFAULTS: MatrixHandlerConfig = {
     shortReplyTresholdSeconds: 5 * 60,
     shortReplyTemplate: "$NICK: $REPLY",
     longReplyTemplate: "$NICK: \"$ORIGINAL\" <- $REPLY",
+    selfReplyTemplate: "<$NICK> $ORIGINAL\n$REPLY",
     truncatedMessageTemplate: "(full message at <$URL>)",
     ignoreFunctionalMembersInAdminRooms: false,
 };
@@ -1392,7 +1395,11 @@ export class MatrixHandler {
 
         let replyTemplate: string;
         const thresholdMs = (this.config.shortReplyTresholdSeconds) * 1000;
-        if (rplSource && event.origin_server_ts - cachedEvent.timestamp > thresholdMs) {
+        if (cachedEvent.sender === event.sender) {
+            // They're replying to their own message.
+            replyTemplate = this.config.selfReplyTemplate;
+        }
+        else if (rplSource && event.origin_server_ts - cachedEvent.timestamp > thresholdMs) {
             replyTemplate = this.config.longReplyTemplate;
         }
         else {
