@@ -602,6 +602,8 @@ ircService:
     shortReplyTemplate: "$NICK: $REPLY"
     # format of replies sent a while after the original message
     longReplyTemplate: "$NICK: \"$ORIGINAL\" <- $REPLY"
+    # format of replies where the sender of the original message is the same as the sender of the reply
+    selfReplyTemplate: "<$NICK> $ORIGINAL\n$REPLY"
     # how much time needs to pass between the reply and the original message to switch to the long format
     shortReplyTresholdSeconds: 300
     # Ignore users mentioned in a io.element.functional_members state event when checking admin room membership
