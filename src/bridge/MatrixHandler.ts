@@ -1373,7 +1373,7 @@ export class MatrixHandler {
         const bridgeIntent = this.ircBridge.getAppServiceBridge().getIntent();
         // strips out the quotation of the original message, if needed
         const replyText = (body: string): string => {
-            const REPLY_REGEX = /> <(.*?)>(.*?)\n\n([\s\S]*)/;
+            const REPLY_REGEX = /> <(.*?)>(.*?)\n\n([\s\S]*)/s;
             const match = REPLY_REGEX.exec(body);
             if (match === null || match.length !== 4) {
                 return body;
