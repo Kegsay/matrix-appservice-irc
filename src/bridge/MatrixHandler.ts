@@ -652,7 +652,7 @@ export class MatrixHandler {
 
     private async _onKick(req: BridgeRequest, event: MatrixEventKick, kicker: MatrixUser, kickee: MatrixUser) {
         req.log.info(
-            "onKick %s is kicking/banning %s from %s (reason: %s)",
+            "onKick %s is kicking %s from %s (reason: %s)",
             kicker.getId(), kickee.getId(), event.room_id, event.content.reason || "none"
         );
         this._onMemberEvent(req, event);
@@ -741,7 +741,81 @@ export class MatrixHandler {
                 // If we aren't joined this will no-op.
                 await client.leaveChannel(
                     ircRoom.channel,
-                    `Kicked by ${kicker.getId()} ` +
+                    `Kicked by ${kicker.getId()}` +
+                    (event.content.reason ? ` : ${event.content.reason}` : "")
+                );
+            })));
+        }
+    }
+
+    private async _onBan(req: BridgeRequest, event: MatrixEventKick, sender: MatrixUser, banned: MatrixUser) {
+        req.log.info(
+            "onBan %s is banning %s from %s (reason: %s)",
+            sender.getId(), banned.getId(), event.room_id, event.content.reason || "none"
+        );
+        this._onMemberEvent(req, event);
+
+        const ircRooms = await this.ircBridge.getStore().getIrcChannelsForRoomId(event.room_id);
+        // do we have an active connection for the banned? This tells us if they are real
+        // or virtual.
+        const bannedClients = this.ircBridge.getBridgedClientsForUserId(banned.getId());
+
+        if (bannedClients.length === 0) {
+            // Matrix on IRC banning, work out which IRC user to ban.
+            let server = null;
+            for (let i = 0; i < ircRooms.length; i++) {
+                if (ircRooms[i].server.claimsUserId(banned.getId())) {
+                    server = ircRooms[i].server;
+                    break;
+                }
+            }
+            if (!server) {
+                return; // kicking a bogus user
+            }
+            const bannedNick = server.getNickFromUserId(banned.getId());
+            if (!bannedNick) {
+                return; // bogus virtual user ID
+            }
+            // work out which client will do the kicking
+            const senderClient = this.ircBridge.getIrcUserFromCache(server, sender.getId());
+            if (!senderClient) {
+                // well this is awkward.. whine about it and bail.
+                req.log.warn(
+                    "%s has no client instance to send kick from. Cannot kick.",
+                    sender.getId()
+                );
+                return;
+            }
+            // we may be bridging this matrix room into many different IRC channels, and we want
+            // to kick this user from all of them.
+            for (let i = 0; i < ircRooms.length; i++) {
+                if (ircRooms[i].server.domain !== server.domain) {
+                    return;
+                }
+                senderClient.ban(bannedNick, ircRooms[i].channel);
+                senderClient.kick(
+                    bannedNick, ircRooms[i].channel,
+                    `Banned by ${sender.getId()}` +
+                    (event.content.reason ? ` : ${event.content.reason}` : "")
+                );
+            }
+        }
+        else {
+            // Matrix on Matrix banning: part the channel.
+            const bannedServerLookup: {[serverDomain: string]: BridgedClient} = {};
+            bannedClients.forEach((ircClient) => {
+                bannedServerLookup[ircClient.server.domain] = ircClient;
+            });
+            await Promise.all(ircRooms.map((async (ircRoom) => {
+                // Make the connected IRC client leave the channel.
+                const client = bannedServerLookup[ircRoom.server.domain];
+                if (!client) {
+                    return; // not connected to this server
+                }
+                // If we aren't joined this will no-op.
+                await client.leaveChannel(
+                    ircRoom.channel,
+                    `Banned by ${sender.getId()}` +
                     (event.content.reason ? ` : ${event.content.reason}` : "")
                 );
             })));
@@ -1462,6 +1536,10 @@ export class MatrixHandler {
 
     public onKick(req: BridgeRequest, event: MatrixEventKick, kicker: MatrixUser, kickee: MatrixUser) {
         return reqHandler(req, this._onKick(req, event, kicker, kickee));
+    }
+
+    public onBan(req: BridgeRequest, event: MatrixEventKick, sender: MatrixUser, banned: MatrixUser) {
+        return reqHandler(req, this._onBan(req, event, sender, banned));
     }
 
     public onMessage(req: BridgeRequest, event: MatrixMessageEvent) {
