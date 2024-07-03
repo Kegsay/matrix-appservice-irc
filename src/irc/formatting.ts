@@ -53,8 +53,9 @@ const STYLE_COLOR = '\u0003';
 const STYLE_BOLD = '\u0002';
 const STYLE_MONOSPACE = '\u0011';
 const STYLE_ITALICS = '\u001d';
+const STYLE_STRIKE = '\u001e';
 const STYLE_UNDERLINE = '\u001f';
-const STYLE_CODES = [STYLE_BOLD, STYLE_MONOSPACE, STYLE_ITALICS, STYLE_UNDERLINE];
+const STYLE_CODES = [STYLE_BOLD, STYLE_MONOSPACE, STYLE_ITALICS, STYLE_STRIKE, STYLE_UNDERLINE];
 const RESET_CODE = '\u000f';
 const REVERSE_CODE = '\u0016';
 
@@ -166,7 +167,7 @@ export function htmlToIrc(html?: string): string|null {
     // things like case-sensitivity and spacing). Use he to decode any html entities
     // because we don't want those.
     let cleanHtml = he.decode(sanitizeHtml(html, {
-        allowedTags: ["b", "code", "i", "u", "strong", "font", "em"],
+        allowedTags: ["b", "code", "del", "i", "u", "strong", "font", "em"],
         allowedAttributes: {
             font: ["color"]
         }
@@ -181,7 +182,7 @@ export function htmlToIrc(html?: string): string|null {
     const replacements: [RegExp, string][] = [
         [/<b>/g, STYLE_BOLD], [/<u>/g, STYLE_UNDERLINE], [/<i>/g, STYLE_ITALICS],
         [/<strong>/g, STYLE_BOLD], [/<em>/g, STYLE_ITALICS],
-        [/<code>/g, STYLE_MONOSPACE],
+        [/<del>/g, STYLE_STRIKE], [/<code>/g, STYLE_MONOSPACE],
     ];
     Object.keys(htmlNamesToColorCodes).forEach(function(htmlColor) {
         replacements.push([
@@ -199,6 +200,7 @@ export function htmlToIrc(html?: string): string|null {
     const openStyleCodes = [];
     const closeTagsToStyle: {[tag: string]: string} = {
         "</b>": STYLE_BOLD,
+        "</del>": STYLE_STRIKE,
         "</code>": STYLE_MONOSPACE,
         "</u>": STYLE_UNDERLINE,
         "</i>": STYLE_ITALICS,
@@ -260,13 +262,13 @@ export function ircToHtml(text: string): string {
     // Replace all mIRC formatting characters.
     // The color character can have arguments.
     // The regex matches:
-    // - Any single 'simple' formatting character: \x02, \x11, \x1d, \x1f, \x0f and
-    //   \x16 for bold, italics, underline, reset and reverse respectively.
+    // - Any single 'simple' formatting character: \x02, \x11, \x1d, \x1e, \x1f, \x0f and
+    //   \x16 for bold, italics, underline, strikethrough, reset and reverse respectively.
     // - The colour formatting character (\x03) followed by 0 to 2 digits for
     //   the foreground colour and (optionally) a comma and 1-2 digits for the
     //   background colour.
     // eslint-disable-next-line no-control-regex
-    const colorRegex = /[\x02\x11\x1d\x1f\x0f\x16]|\x03(\d{0,2})(?:,(\d{1,2}))?/g;
+    const colorRegex = /[\x02\x11\x1d\x1e\x1f\x0f\x16]|\x03(\d{0,2})(?:,(\d{1,2}))?/g;
 
     // Maintain a small state machine of which tags are open so we can close the right
     // ones on RESET codes and toggle appropriately if they do the same code again.
@@ -283,6 +285,9 @@ export function ircToHtml(text: string): string {
 
             case STYLE_MONOSPACE:
                 return htmlTag(state, 'code');
+
+            case STYLE_STRIKE:
+                return htmlTag(state, 'del');
 
             case STYLE_ITALICS:
                 return htmlTag(state, 'i');

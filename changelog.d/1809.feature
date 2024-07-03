@@ -1,0 +1,1 @@
+Add strikethrough formatting support

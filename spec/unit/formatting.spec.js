@@ -18,6 +18,11 @@ describe("Formatting", function() {
                 formatting.htmlToIrc("The quick brown <code>fox</code> jumps over the lazy <code>dog</code>.")
             ).toBe("The quick brown \u0011fox\u000f jumps over the lazy \u0011dog\u000f.");
         });
+        it("should format <del> inputs", function() {
+            expect(
+                formatting.htmlToIrc("The quick brown <del>fox</del> jumps over the lazy <del>dog</del>.")
+            ).toBe("The quick brown \u001efox\u000f jumps over the lazy \u001edog\u000f.");
+        });
         it("should have regular characters for inputs containing non-safe html chars", function() {
             expect(
                 formatting.htmlToIrc("%100 of \"homes\" should have <u>dogs</u>. Facts © Half-Shot")
@@ -54,6 +59,11 @@ describe("Formatting", function() {
             expect(
                 formatting.ircToHtml("The quick brown \u0002fox\u000f jumps over the lazy \u0002dog\u000f.")
             ).toBe("The quick brown <b>fox</b> jumps over the lazy <b>dog</b>.");
+        });
+        it("should <del> for strikethrough inputs", function() {
+            expect(
+                formatting.ircToHtml("The quick brown \u001efox\u000f jumps over the lazy \u001edog\u000f.")
+            ).toBe("The quick brown <del>fox</del> jumps over the lazy <del>dog</del>.");
         });
         it("should <code> for monospace inputs", function() {
             expect(
