@@ -1,0 +1,7 @@
+Change format for file uploads and codeblocks
+Change default format for long replies
+Handle replying to self
+Prefix nicknames with "`" instead of "M" when they start with an invalid character
+Fix long message replies
+In `!cmd`, don't require commands be all uppercase
+Initial support for bridging bans to IRC
