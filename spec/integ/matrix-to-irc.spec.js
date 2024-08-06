@@ -234,6 +234,52 @@ describe("Matrix-to-IRC message bridging", function() {
         });
     });
 
+    it("should bridge matrix replies to self as self-replies", async () => {
+        // Trigger an original event
+        await env.mockAppService._trigger("type:m.room.message", {
+            content: {
+                body: "This is the real message",
+                msgtype: "m.text"
+            },
+            room_id: roomMapping.roomId,
+            sender: repliesUser.id,
+            event_id: "$original:bar.com",
+            origin_server_ts: Date.now(),
+            type: "m.room.message"
+        });
+        const p = env.ircMock._whenClient(roomMapping.server, repliesUser.nick, "say",
+            (client, channel, text) => {
+                expect(client.nick).toEqual(repliesUser.nick);
+                expect(client.addr).toEqual(roomMapping.server);
+                expect(channel).toEqual(roomMapping.channel);
+                expect(text).toEqual(`<${repliesUser.nick}> This is the real message\nReply Text`);
+            }
+        );
+        const formatted_body = constructHTMLReply(
+            "This is the fake message",
+            "@somedude:bar.com",
+            "Reply text"
+        );
+        await env.mockAppService._trigger("type:m.room.message", {
+            content: {
+                body: "> <@somedude:bar.com> This is the fake message\n\nReply Text",
+                formatted_body,
+                format: "org.matrix.custom.html",
+                msgtype: "m.text",
+                "m.relates_to": {
+                    "m.in_reply_to": {
+                        "event_id": "$original:bar.com"
+                    }
+                },
+            },
+            sender: repliesUser.id,
+            room_id: roomMapping.roomId,
+            origin_server_ts: Date.now(),
+            type: "m.room.message"
+        });
+        await p;
+    });
+
     it("should bridge rapid matrix replies as short replies", async () => {
         // Trigger an original event
         await env.mockAppService._trigger("type:m.room.message", {
