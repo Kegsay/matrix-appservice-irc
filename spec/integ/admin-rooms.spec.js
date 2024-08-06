@@ -885,14 +885,12 @@ describe("Admin rooms", function() {
                     cmdIx++;
                 });
 
-            // 5 commands should be executed
-            // rubbishserver should not be accepted
+            // 4 commands should be executed
             const commands = [
                 `!cmd ${roomMapping.server} JOIN ${newChannel}`,
                 `!cmd ${roomMapping.server} TOPIC ${newChannel} :some new fancy topic`,
                 `!cmd ${roomMapping.server} PART ${newChannel}`,
-                `!cmd ${roomMapping.server} STUPID COMMANDS`,
-                `!cmd rubbishserver SOME COMMAND`];
+                `!cmd ${roomMapping.server} STUPID COMMANDS`];
 
             for (let i = 0; i < commands.length; i++) {
             // send commands

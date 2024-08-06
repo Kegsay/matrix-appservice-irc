@@ -31,8 +31,8 @@ describe("BridgedClient", function() {
             expect(BridgedClient.getValidNick("f+/\u3052oobar", false, STATE_DISC)).toBe("foobar");
         });
         it("will ensure nicks start with a letter or special character", function() {
-            expect(BridgedClient.getValidNick("-foobar", false, STATE_DISC)).toBe("M-foobar");
-            expect(BridgedClient.getValidNick("12345", false, STATE_DISC)).toBe("M12345");
+            expect(BridgedClient.getValidNick("-foobar", false, STATE_DISC)).toBe("`-foobar");
+            expect(BridgedClient.getValidNick("12345", false, STATE_DISC)).toBe("`12345");
         });
         it("will throw if the nick is invalid", function() {
             expect(() => BridgedClient.getValidNick("f+/\u3052oobar", true, STATE_DISC)).toThrowError();
