@@ -1,0 +1,913 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Matrix IRC Bridge</title>
+        <meta name="robots" content="noindex" />
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="docs/_site/style.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="usage.html"><strong aria-hidden="true">2.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="admin_room.html"><strong aria-hidden="true">2.1.</strong> Admin Room</a></li><li class="chapter-item expanded "><a href="room_commands.html"><strong aria-hidden="true">2.2.</strong> Room Commands</a></li><li class="chapter-item expanded "><a href="room_configuration.html"><strong aria-hidden="true">2.3.</strong> Room Configuration</a></li><li class="chapter-item expanded "><a href="irc_modes.html"><strong aria-hidden="true">2.4.</strong> IRC Modes</a></li><li class="chapter-item expanded "><a href="setup_widget.html"><strong aria-hidden="true">2.5.</strong> Setup Widget</a></li></ol></li><li class="chapter-item expanded "><a href="bridged_networks.html"><strong aria-hidden="true">3.</strong> Bridged Networks</a></li><li class="chapter-item expanded "><a href="administrators_guide.html"><strong aria-hidden="true">4.</strong> Bridge Administrators</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bridge_setup.html"><strong aria-hidden="true">4.1.</strong> Setting up the bridge</a></li><li class="chapter-item expanded "><a href="debug_api.html"><strong aria-hidden="true">4.2.</strong> Debug API</a></li><li class="chapter-item expanded "><a href="connection_pooling.html"><strong aria-hidden="true">4.3.</strong> Connection Pooling</a></li></ol></li><li class="chapter-item expanded "><a href="irc_operators.html"><strong aria-hidden="true">5.</strong> IRC Operators</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Matrix IRC Bridge</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/matrix-org/matrix-appservice-irc" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
+<p>This book describes how to use the Matrix IRC bridge, giving an overview of functions for users and server administrators. If you
+believe there are errors or omissions in the book, please open an issue on <a href="https://github.com/matrix-org/matrix-appservice-irc/issues">GitHub</a>
+or create a PR.</p>
+<p>For an overview of the bridge, see the <a href="https://github.com/matrix-org/matrix-appservice-irc">README.md</a>.</p>
+<p>A community maintained wiki also exists which can be found <a href="https://github.com/matrix-org/matrix-appservice-irc/wiki">here</a>.</p>
+<p>The documentation is built from source and can be found in <a href="https://github.com/matrix-org/matrix-appservice-irc/tree/develop/docs">the GitHub repo</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="using-the-bridge"><a class="header" href="#using-the-bridge">Using the bridge</a></h1>
+<p>This chapter describes how to use the bridge and is intended for new or experienced Matrix
+users.</p>
+<h2 id="getting-connected"><a class="header" href="#getting-connected">Getting connected</a></h2>
+<p>The IRC bridge will dynamically connect you to IRC when you start interacting with an IRC bridged room.
+Some bridges, such as matrix.org, will connect you to IRC and join you to a channel the moment you join
+the Matrix room. Others will only connect you to IRC when you attempt to send a message to a Matrix channel.</p>
+<p>Once you are connected to IRC, any joins you make to rooms connected to IRC will be replicated as joins to the
+IRC channel. By default your nickname will be <code>YourDisplayname-M</code>, but some bridges may alter this default
+by using a <code>[m]</code> suffix instead.</p>
+<h3 id="joining-a-channel"><a class="header" href="#joining-a-channel">Joining a channel</a></h3>
+<p>Joining a public channel over the bridge is as easy as joining an alias, for instance:</p>
+<p><code>#python:libera.chat</code> maps to the <code>#python</code> channel on <a href="https://libera.chat">libera.chat</a>.</p>
+<h3 id="private-messaging"><a class="header" href="#private-messaging">Private Messaging</a></h3>
+<p>Sending a Private Message (PM) to an IRC user means starting a conversation with <code>@Alice:libera.chat</code>,
+which maps to the nickname <code>Alice</code> on <a href="https://libera.chat">libera.chat</a>.</p>
+<p>If a PM is sent from the IRC side, it will either appear in your existing PM room or you will be invited
+to a new room.</p>
+<p>The room alias and user formats may differ depending on the bridge you are using, so be sure to check with the
+server administrator if the above defaults are not working for you. Server administrators can check
+<a href="https://github.com/matrix-org/matrix-appservice-irc/blob/develop/config.sample.yaml">config.sample.yaml</a> for
+instructions on how to change the templates for users and channels.</p>
+<p>Alias and MXID formats can be found from the <a href="./bridged_networks.html">list of bridged networks</a>
+section.</p>
+<h3 id="customising-your-experience"><a class="header" href="#customising-your-experience">Customising your experience</a></h3>
+<p>You may also want to customise your nickname or set a password to authenticate with services, you
+can do this by PMing the bridge bot user.</p>
+<pre><code>!nick Alice
+!storepass MySecretPassword
+</code></pre>
+<p>More commands can be found in the <a href="./admin_room.html">Admin Room</a> section.</p>
+<h2 id="authentication"><a class="header" href="#authentication">Authentication</a></h2>
+<p>Most networks provide a mechanism for one to authenticate themselves. You can do this manually by messaging NickServ
+or by providing a password to the bridge itself. See the <a href="./admin_room.html">Admin Room</a> section for help.</p>
+<h3 id="sasl-authentication"><a class="header" href="#sasl-authentication">SASL authentication</a></h3>
+<p>SASL authentication is a new mechanism to authenticate with certain bridges, which requires you to also
+set a <code>!username</code> as well as password before authenticating. Bridges such as the <strong>libera.chat</strong> bridge
+require this authentication type. If you fail to authenticate, the bridge will notify you in the admin
+room.</p>
+<h2 id="message-behaviours"><a class="header" href="#message-behaviours">Message behaviours</a></h2>
+<p>Messages from IRC to Matrix appear in roughly as you'd expect them to. Emotes (<code>/me</code> text) are applied as Matrix supports
+it, and mIRC format colours are applied too. The IRC bridge makes an attempt to replace nicknames in sent messages with
+user mention &quot;pills&quot;.</p>
+<p><img src="images/irc_mentions.png" alt="An illustration of the IRC mentions feature" /></p>
+<h3 id="matrix---irc-formatting"><a class="header" href="#matrix---irc-formatting">Matrix -&gt; IRC formatting</a></h3>
+<p>Messages from Matrix are often richer than their IRC counterparts, as Matrix has support for sending HTML, files, edits and replies.</p>
+<p>Basic formatting is supported such as <strong>bolding</strong> and <em>italics</em> but other formats are discarded. Messages that exceed the maximum
+size of an IRC message <em>or</em> a message that contains newlines will be split into two or more messages. The configuration value
+<code>lineLimit</code> sets the maximum permitted number of messages to be sent before the whole message is stored as a file and sent as a link.</p>
+<p>For example:</p>
+<pre><code class="language-irc">&gt; Half-Shot sent a long message: &lt;https://matrix.org/_matrix/media/r0/download/matrix.org/fooobar/message.txt&gt;
+</code></pre>
+<p>Files are sent as textual links such as:</p>
+<pre><code class="language-irc">&gt; Half-Shot uploaded an image: meme.gif (1358KiB) &lt; https://matrix.org/_matrix/media/r0/download/half-shot.uk/fooobar/meme.gif &gt;
+</code></pre>
+<p>Edits are sent with a fallback star:</p>
+<pre><code class="language-irc">&gt; Half-Shot: foo
+&gt; Half-Shot: * foobar
+</code></pre>
+<p>Replies are sent with context:</p>
+<pre><code class="language-irc">&gt; Half-Shot: foo
+&gt; &lt;Half-Shot &quot;foo&quot;&gt; bar
+</code></pre>
+<p>Reactions or other non-message events are not sent presently.</p>
+<h2 id="encryption"><a class="header" href="#encryption">Encryption</a></h2>
+<p>Presently, the bridge cannot work in an E2EE room. The bridge will leave any room that has encryption enabled. This is because
+the bridge does not know how to read encrypted events and so far no work has been started to support this. IRC is not capable of
+relaying E2E messages to IRC clients and as such the bridge would have to decrypt messages from Matrix and encrypt messages from
+IRC. As such, the team has chosen not to support encrypted Matrix rooms at this time.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="admin-room"><a class="header" href="#admin-room">Admin Room</a></h1>
+<p>Most bridges will send you an invite to an admin room once you join a IRC bridged room, to control your connection
+to IRC. Some larger bridges will not (you will need to start a conversation with the bot manually). See
+<a href="./bridged_networks">bridged_networks</a> for a list of bot userIds.</p>
+<h2 id="bot-commands"><a class="header" href="#bot-commands">Bot Commands</a></h2>
+<p>The admin room allows you to send commands to a room to manipulate your IRC session.</p>
+<p>Some commands take a <code>[irc.example.net]</code> which lets you choose which IRC network to direct the
+request to, as some bridges host multiple IRC networks. Typically matrix.org bridges only host
+one network.</p>
+<h3 id="join"><a class="header" href="#join"><code>!join</code></a></h3>
+<p><code>!join [irc.example.net] #channel [key]</code></p>
+<p>Joins a channel on the IRC side and invites you to the Matrix room. This command will create a new
+portal room if a room doesn't exist. This is useful where you cannot with the alias syntax (e.g. the channel requires a key).</p>
+<h3 id="cmd"><a class="header" href="#cmd"><code>!cmd</code></a></h3>
+<p><code>!cmd [irc.example.net] COMMAND [arg0 [arg1 [...]]]</code></p>
+<p>Send a raw command through the IRC connection. This is useful for making MODE changes to yourself
+or to a channel if you have operator privileges. Note that this command will not produce any response
+text, so commands will happen silently.</p>
+<h3 id="whois"><a class="header" href="#whois"><code>!whois</code></a></h3>
+<p><code>!whois [irc.example.net] NickName|@alice:matrix.org</code></p>
+<p>A powerful command to either lookup a nickname <em>or</em> a Matrix UserID and return information about that user.</p>
+<h3 id="username"><a class="header" href="#username"><code>!username</code></a></h3>
+<p><code>!username [irc.example.net] username</code></p>
+<p>Store the username you wish to identify with on the bridge. Please note that this must abide by the
+rules <a href="https://datatracker.ietf.org/doc/html/rfc2812#section-2.3.1">of RFC2812</a> which means the username
+should be lowercase, and contain only some special characters.</p>
+<h3 id="storepass"><a class="header" href="#storepass"><code>!storepass</code></a></h3>
+<p><code>!storepass [irc.example.net] passw0rd</code></p>
+<p>Store a password, or a <code>username:password</code> combination to be sent as a PASS command on connection to the server.</p>
+<p><strong>This action will store your password in encrypted form on the IRC bridge</strong>, so be sure to use a unique password for the IRC service.</p>
+<p>If you are authenticating with a SASL enable bridge (such as libera.chat), you MUST specify a <code>!username</code>
+before you can authenticate.</p>
+<p>To authenticate with your new settings, use <a href="admin_room.html#reconnect"><code>!reconnect</code></a>.</p>
+<h3 id="reconnect"><a class="header" href="#reconnect"><code>!reconnect</code></a></h3>
+<p><code>!reconnect [irc.example.net]</code></p>
+<p>This command will reconnect you to IRC without kicking you from rooms. This is useful if you
+need to authenticate after setting your password (and username).</p>
+<h3 id="removepass"><a class="header" href="#removepass"><code>!removepass</code></a></h3>
+<p><code>!removepass [irc.example.net]</code></p>
+<p>Remove your stored password, will NOT reconnect you.</p>
+<h3 id="listrooms"><a class="header" href="#listrooms"><code>!listrooms</code></a></h3>
+<p><code>!listrooms [irc.example.net]</code></p>
+<p>List all the Matrix rooms that you are joined to which are also connected to IRC.</p>
+<h3 id="quit"><a class="header" href="#quit"><code>!quit</code></a></h3>
+<p>QUITs you from all connected networks AND <strong>kicks you from all IRC rooms</strong> (except DMs). This is to avoid
+leaking history to your Matrix account while not being visible to IRC users. This command will not remove
+your password or stored data with the bridge. Ask the owner of the bridge to remove that data for you.</p>
+<h3 id="nick"><a class="header" href="#nick"><code>!nick</code></a></h3>
+<p><code>!nick [irc.example.net] nick</code></p>
+<p>Set your nickname for your IRC connection and persist it across restarts. If the nickname clashes with another
+user's nickname, this will fail.</p>
+<h3 id="feature"><a class="header" href="#feature"><code>!feature</code></a></h3>
+<p><code>!feature feature-name [true/false/default]</code></p>
+<p>Enable or disable a feature for your account. Set it to <code>true</code> to enable the feature, <code>false</code> to disable it, or <code>default</code>
+to use the default based upon the bridge config.</p>
+<p>Currently, the features you can use are:</p>
+<ul>
+<li><code>mentions</code> - Determine whether IRC users can mention you on the IRC bridge. Note, that this will only stop mention text being turned
+into pills. See <a href="usage.html#message-behaviours">this section</a> for an explanation of this feature.</li>
+</ul>
+<h3 id="bridgeversion"><a class="header" href="#bridgeversion"><code>!bridgeversion</code></a></h3>
+<p>Prints the current version of the bridge.</p>
+<p>The bridge bot allows you to control your IRC connection through various bot commands. Some
+commands are reserved for bridge administrators, which can be configured in the config file.</p>
+<h3 id="plumb"><a class="header" href="#plumb"><code>!plumb</code></a></h3>
+<p><code>!plumb !room:example.com irc.network.net #channel</code></p>
+<p><em>This command only works for bridge administrators.</em></p>
+<p>This command allows you to plumb a IRC channel into a room without using the HTTP provisioning API. This command does NOT
+validate that you have permission to do this on the IRC channel so please take care to ensure that the IRC channel is
+aware of your actions.</p>
+<p>You must invite the bridge bot into the Matrix room for this to work.</p>
+<h3 id="unlink"><a class="header" href="#unlink"><code>!unlink</code></a></h3>
+<p><code>!unlink !room:example.com irc.network.net #channel</code></p>
+<p><em>This command only works for moderators of a bridged Matrix room and bridge administrators.</em></p>
+<p>This command allows you to unlink a IRC channel from a room. Users are only able to remove links for rooms they are a moderator in (power level of 50 or greater). Administrators of the bridge are able to remove links from any room.</p>
+<h3 id="help"><a class="header" href="#help"><code>!help</code></a></h3>
+<p>Prints a list of commands for the bridge.</p>
+<div style="break-before: page; page-break-before: always;"></div><h2 id="room-commands"><a class="header" href="#room-commands">Room Commands</a></h2>
+<p>Some commands to the IRC bridge can be sent inline into any bridged Matrix room. This is
+handy if you are also bridging to Telegram or Slack and do not have the ability to DM
+the bridge bot in order to make changes to your session.</p>
+<h2 id="irc-nick-nickname"><a class="header" href="#irc-nick-nickname"><code>!irc nick $nickname</code></a></h2>
+<p>Change your nickname on the IRC server that the room is connected to.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="room-configuration"><a class="header" href="#room-configuration">Room Configuration</a></h1>
+<p>You can now configure certain options on a per-room basis from within your Matrix client. Currently
+this requires a bit of technical know-how as no clients expose an interface to changing the
+bridge configuration.</p>
+<h2 id="the-orgmatrixappservice-ircconfig-event"><a class="header" href="#the-orgmatrixappservice-ircconfig-event">The <code>org.matrix.appservice-irc.config</code> event</a></h2>
+<p><em>Not all bridges support all configuration options listed. Check with the bridge administrator before
+creating an issue.</em></p>
+<p>The bridge allows room moderators to create a state event in the room to change the way the bridge
+behaves in that room.</p>
+<p>In Element you can modify the room state by:</p>
+<ul>
+<li>Opening the room you wish to configure.</li>
+<li>Typing <code>/devtools</code>.</li>
+<li>Click Explore Room State.</li>
+<li>Look for the <code>org.matrix.appservice-irc.config</code> event.</li>
+<li>You should be able to click Edit to edit the content, and then hit Send to adjust the config.</li>
+</ul>
+<p>If an event does not exist yet, you can instead do:</p>
+<ul>
+<li>Typing <code>/devtools</code>.</li>
+<li>Click Send Custom Event.</li>
+<li>Click the Event button to change the type to a <strong>State Event</strong>.</li>
+<li>The event type must be <code>org.matrix.appservice-irc.config</code>.</li>
+<li>The state key can be left blank.</li>
+<li>Enter the <code>Event Content</code> as a JSON object. The schema is described in the following section.</li>
+<li>You may now hit Send to apply the config.</li>
+</ul>
+<h2 id="configuration-options"><a class="header" href="#configuration-options">Configuration Options</a></h2>
+<h3 id="linelimit"><a class="header" href="#linelimit"><code>lineLimit</code></a></h3>
+<p>Type: <code>number</code></p>
+<p>This allows you to modify the minimum number of lines permitted in a room before the
+message is pastebinned. The setting is analogous to the <code>lineLimit</code> config option in
+the bridge config file.</p>
+<h3 id="allowunconnectedmatrixusers"><a class="header" href="#allowunconnectedmatrixusers"><code>allowUnconnectedMatrixUsers</code></a></h3>
+<p>Type: <code>boolean</code></p>
+<p>Some IRC networks require that Matrix users must be joined to the IRC channel before
+<em>any</em> messages can bridge into the room. You can override this by setting this key
+to <code>true</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="irc-modes"><a class="header" href="#irc-modes">IRC Modes</a></h1>
+<p>This chapter explains how various IRC channel modes are interpreted by the bridge, and how you can best configure your
+channels to work well with the bridge.</p>
+<p>Note: While the bridge tries to follow the RFCs where possible, due to the somewhat fragmented nature of IRC the bridge is
+designed for maximum compatibility with <a href="https://github.com/solanum-ircd/solanum">Libera's IRCd</a>.</p>
+<h2 id="user-modes-to-power-levels"><a class="header" href="#user-modes-to-power-levels">User modes to power levels</a></h2>
+<p>User modes are mapped to certain power levels on Matrix. For those unaware, Matrix power levels typically range between
+0-100 where zero represents a user that may only speak and 100 is an admin of the room (although these are modifiable).</p>
+<p>By default the bridge maps users like so:</p>
+<pre><code class="language-yaml"># taken from config.sample.yaml
+modePowerMap:
+    o: 50
+    v: 1
+</code></pre>
+<p>An operator on the IRC side of the bridge will be given moderator privileges (PL50) and a voiced user will be given
+PL1. In <code>+m</code> (moderated) rooms, users who are not voiced cannot speak and so the Matrix room will not allow users with
+PL0 (that is, without +v) to speak.</p>
+<p>The IRC bridge admin can customise this power level mapping to however they see fit.</p>
+<h2 id="channel-modes-that-prevent-bridged-users-from-joining"><a class="header" href="#channel-modes-that-prevent-bridged-users-from-joining">Channel modes that prevent bridged users from joining</a></h2>
+<p>Below are some common channel modes that prevent bridged users from joining. The modes in parentheses and the examples
+given are for Libera.Chat, other IRCds may have different mode letters or not have the capability at all, so consult the
+help documentation of channel for other networks to find out what they support.</p>
+<p>If a user is not able to join the IRC channel, they will be kicked from the Matrix room. The reason is given in the
+Matrix kick message, and a more verbose error is given in the user's admin room.</p>
+<h3 id="ban-b"><a class="header" href="#ban-b">Ban (<code>+b</code>)</a></h3>
+<p>If the user matches a ban mask on the IRC channel, they cannot join. An IRC channel op can exempt a specific bridged
+user by setting a ban exemption mask (<code>+e</code>) in two ways, either using the IP address of the bridged user:</p>
+<pre><code>/mode #channel +e *!*@2001:470:69fc:105::b2ed
+</code></pre>
+<p>or, if the Matrix user is identified to services, using the <code>$a</code> extban syntax:</p>
+<pre><code>/mode #channel +e $a:matrixuser
+</code></pre>
+<p>Note that exempting a user means that user will not be affected by bans or quiets,
+so be sure you trust the user before giving them an exemption.</p>
+<h3 id="invite-only-i"><a class="header" href="#invite-only-i">Invite only (<code>+i</code>)</a></h3>
+<p>Some communities prefer to keep their channels invite only but allow the bridge to access the channel. An IRC channel
+operator can set an invite exemption (<code>+I</code>) mask for the whole bridge:</p>
+<pre><code>/mode #channel +I *!*@2001:470:69fc:105::/64
+</code></pre>
+<p>This will also work on other IRC networks that support IPv6 and do not automatically cloak hosts (notably OFTC), however
+the IP address range will be different. Running <code>/whois</code> on a Matrix user nick will give you the IPv6 /64 range to use.</p>
+<p>Adding an invite exemption for a single Matrix user is done the same way as the ban exemption methods above, replacing <code>+e</code>
+with <code>+I</code>.</p>
+<h3 id="registered-only-r"><a class="header" href="#registered-only-r">Registered only (<code>+r</code>)</a></h3>
+<p>If <code>+r</code> is set on a channel, Matrix users not identified to services cannot join.</p>
+<h3 id="key-protected-k"><a class="header" href="#key-protected-k">Key protected (<code>+k</code>)</a></h3>
+<p>If a channel is protected by a key, it cannot be entered by joining via an alias. Instead you may join by using
+the <a href="admin_room#join"><code>!join</code></a> command. Be aware that the bridge purposefully does not store channel keys in
+the database as a security precaution so you should be expected to do this again on bridge restart.</p>
+<h3 id="channel-forwarding-f"><a class="header" href="#channel-forwarding-f">Channel Forwarding (<code>+f</code>)</a></h3>
+<p>Channel forwarding is presently unsupported, see https://github.com/matrix-org/matrix-appservice-irc/issues/214
+for information and updates.</p>
+<h2 id="other-important-channel-modes"><a class="header" href="#other-important-channel-modes">Other important channel modes</a></h2>
+<p>These channel modes do not prevent a user from joining, but they still affect various properties of the room.</p>
+<h3 id="secret-s"><a class="header" href="#secret-s">Secret (<code>+s</code>)</a></h3>
+<p>By default the IRC bridge will automatically insert any newly joined rooms into the homeserver's room directory.
+The <code>+s</code> mode will mark the channel as secret and the bridge will not show it in the directory. The room will still
+be joinable however.</p>
+<h3 id="moderated-m"><a class="header" href="#moderated-m">Moderated (<code>+m</code>)</a></h3>
+<p>When mode <code>+m</code> is set, any users with a powerlevel of 0 (i.e. not opped or voiced) will be prevented from talking.</p>
+<h3 id="quiet-q"><a class="header" href="#quiet-q">Quiet (<code>+q</code>)</a></h3>
+<p>A quiet mask is similar to a ban mask, but only prevents the user from talking, not joining. If a Matrix user matches
+a quiet mask, the message will not be sent to IRC but will still be sent to the Matrix room.</p>
+<h3 id="op-moderated-z"><a class="header" href="#op-moderated-z">Op moderated (<code>+z</code>)</a></h3>
+<p>When mode <code>+z</code> is set, messages that are normally blocked by <code>+m</code>, <code>+b</code>, and <code>+q</code> are instead sent to channel operators
+using a statusmsg. The bridge currently does not understand how <code>+z</code> works, so setting <code>+mz</code> will still block Matrix
+users with a powerlevel of 0 from talking in the channel.</p>
+<p>Additionally, the bridge doesn't support statusmsg, so if the channel is set <code>+mz</code>, any messages that are affected by it
+do not appear in the Matrix room.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="setup-widget"><a class="header" href="#setup-widget">Setup Widget</a></h1>
+<p>The IRC Bridge provides a user interface in the form of a Matrix widget.
+This can be used within a room to link and unlink channels.</p>
+<h3 id="configuration"><a class="header" href="#configuration">Configuration</a></h3>
+<p>In order to use the setup widget, it must be enabled along with the provisioning API:</p>
+<pre><code class="language-yaml">  provisioning:
+    # True to enable the provisioning HTTP endpoint. Default: false.
+    enabled: true
+    # Whether to enable hosting the setup widget page. Default: false.
+    widget: true
+</code></pre>
+<p>It will be hosted on the same port as the appservice by default, at the path <code>/_matrix/provision/v1/static</code>.</p>
+<h3 id="usage"><a class="header" href="#usage">Usage</a></h3>
+<p>Invite the bridge user to the Matrix room, then add the widget like this (where <code>example.com</code> is a public route to your bridge's provisioning API):</p>
+<pre><code>/addwidget https://example.com/_matrix/provision/v1/static/?roomId=$matrix_room_id&amp;widgetId=$matrix_widget_id
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><p>A wishlist of IRC networks to be bridged is being collected <a href="https://github.com/matrix-org/matrix-appservice-irc/issues/208">in a github issue</a>.</p>
+<div class="table-wrapper"><table><thead><tr><th>Network Name</th><th>Room alias format</th><th>Appservice user</th><th>Room for Support</th><th>Operator</th></tr></thead><tbody>
+<tr><td>darkfasel</td><td><code>#channame:darkfasel.net</code></td><td><a href="https://matrix.to/#/@IRC-Darkfasel:darkfasel.net"><code>@IRC-Darkfasel:darkfasel.net</code></a></td><td><a href="https://matrix.to/#/%23darkfasel:darkfasel.net"><code>#darkfasel:darkfasel.net</code></a></td><td><a href="https://www.darkfasel.net/">darkfasel</a></td></tr>
+<tr><td>fc00</td><td><code>#fc00-irc_#channame:m.trnsz.com</code></td><td><a href="https://matrix.to/#/@fc00ircmtx:m.trnsz.com"><code>@fc00ircmtx:m.trnsz.com</code></a></td><td>None</td><td></td></tr>
+<tr><td>GIMPNet<sup class="footnote-reference"><a href="#1">1</a></sup></td><td><code>#_gimpnet_#channame:gnome.org</code></td><td><a href="https://matrix.to/#/@gimpnet-irc:gnome.org"><code>@gimpnet-irc:gnome.org</code></a><sup class="footnote-reference"><a href="#2">2</a></sup></td><td><a href="https://matrix.to/#/%23irc:matrix.org"><code>#irc:matrix.org</code></a></td><td><a href="https://matrix.org/">Matrix.org</a> / <a href="https://gnome.org/">Gnome.org</a></td></tr>
+<tr><td>IRCnet</td><td><code>#_ircnet_#channame:irc.snt.utwente.nl</code></td><td><a href="https://matrix.to/#/@ircnet:irc.snt.utwente.nl"><code>@ircnet:irc.snt.utwente.nl</code></a></td><td><a href="https://matrix.to/#/%23ircnet:utwente.io"><code>#ircnet:utwente.io</code></a></td><td><a href="https://snt.utwente.nl/en/">SNT</a></td></tr>
+<tr><td>OFTC<sup class="footnote-reference"><a href="#3">3</a></sup></td><td><code>#_oftc_#channame:matrix.org</code></td><td><a href="https://matrix.to/#/@oftc-irc:matrix.org"><code>@oftc-irc:matrix.org</code></a></td><td><a href="https://matrix.to/#/%23irc:matrix.org"><code>#irc:matrix.org</code></a></td><td><a href="https://matrix.org/">Matrix.org</a></td></tr>
+<tr><td>PirateIRC</td><td><code>#pirateirc_#channame:diasp.in</code></td><td><a href="https://matrix.to/#/@pirateirc:diasp.in"><code>@pirateirc:diasp.in</code></a></td><td><a href="https://matrix.to/#/%23diasp.in:diasp.in"><code>#diasp.in:diasp.in</code></a></td><td><a href="https://pirates.org.in/">Indian Pirates</a></td></tr>
+<tr><td>Snoonet</td><td><code>#_snoonet_#channame:matrix.org</code></td><td><a href="https://matrix.to/#/@snoonet-irc:matrix.org"><code>@snoonet-irc:matrix.org</code></a></td><td><a href="https://matrix.to/#/%23irc:matrix.org"><code>#irc:matrix.org</code></a></td><td><a href="https://matrix.org/">Matrix.org</a></td></tr>
+<tr><td>Tweakers.net</td><td><code>#_tweakers_#channame:irc.snt.utwente.nl</code></td><td><a href="https://matrix.to/#/@tweakers:irc.snt.utwente.nl"><code>@tweakers:irc.snt.utwente.nl</code></a></td><td><a href="https://matrix.to/#/%23tweakers-irc:utwente.io"><code>#tweakers-irc:utwente.io</code></a></td><td><a href="https://snt.utwente.nl/en/">SNT</a></td></tr>
+<tr><td>irchighway</td><td><code>#irchighway_#channame:eggy.cc</code></td><td><a href="https://matrix.to/#/@appservice-irc:eggy.cc"><code>@appservice-irc:eggy.cc</code></a></td><td><a href="https://matrix.to/#/%23eggster:eggy.cc"><code>#eggster:eggy.cc</code></a></td><td><a href="http://eggy.cc/">Eggy</a></td></tr>
+<tr><td>W3C</td><td><code>#_w3c_#channame:matrix.org</code></td><td><a href="https://matrix.to/#/@w3c-irc:matrix.org"><code>@w3c-irc:matrix.org</code></a></td><td><a href="https://matrix.to/#/%23irc:matrix.org"><code>#irc:matrix.org</code></a></td><td><a href="https://matrix.org/">Matrix.org</a></td></tr>
+<tr><td>LibertaCasa</td><td><code>#channame:liberta.casa</code></td><td><a href="https://matrix.to/#/@lunatic:liberta.casa"><code>@lunatic:liberta.casa</code></a></td><td><a href="https://matrix.to/#/%23help:liberta.casa"><code>#help:liberta.casa</code></a></td><td><a href="https://liberta.casa">LibertaCasa</a></td></tr>
+<tr><td>hackint</td><td><code>#channame:hackint.org</code></td><td><a href="https://matrix.to/#/@appservice-irc:hackint.org"><code>@appservice-irc:hackint.org</code></a></td><td><a href="https://matrix.to/#/%23hackint:hackint.org"><code>#hackint:hackint.org</code></a></td><td><a href="https://hackint.org/">hackint</a></td></tr>
+</tbody></table>
+</div>
+<ul>
+<li>Random.sh is no longer contactable. Status of the bridge is unknown.</li>
+<li>Foonetic IRC has shut down. #xkcd channels <a href="https://web.archive.org/web/20190824061533/http://wiki.xkcd.com/irc/Main_Page#Channel_Migration">moved to slashnet</a>.</li>
+<li>The Espernet bridge was shut down after the 2019 matrix.org network breach.</li>
+<li>The Moznet IRC network has been shut down. They now run their own Matrix homeserver at <a href="https://chat.mozilla.org/">chat.mozilla.org</a> 🎉.</li>
+<li>The freenode IRC bridge offically was shut down on 2021-12-20.</li>
+<li>The Libera Chat IRC bridge <a href="https://matrix.org/blog/2023/11/28/shutting-down-bridge-to-libera-chat/">was shut down on 2023-11-28</a>.</li>
+</ul>
+<h3 id="footnotes"><a class="header" href="#footnotes">Footnotes</a></h3>
+<div class="footnote-definition" id="1"><sup class="footnote-definition-label">1</sup>
+<p>This includes both irc.gimp.org and irc.gnome.org, as they are the same thing.</p>
+</div>
+<div class="footnote-definition" id="2"><sup class="footnote-definition-label">2</sup>
+<p>The bridge has moved from matrix.org to gnome.org.</p>
+</div>
+<div class="footnote-definition" id="3"><sup class="footnote-definition-label">3</sup>
+<p>OFTC does not support SASL at the time of writing, so after reconnects you need to manually REGAIN your nickname with NickServ. See https://github.com/matrix-org/matrix-appservice-irc/issues/1483 for details</p>
+</div>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="administrators-guide"><a class="header" href="#administrators-guide">Administrators Guide</a></h1>
+<p>This document describes useful information when administering a bridge. If you are looking for information
+on how to set up the bridge, please see <a href="./bridge_setup.html">Bridge Setup</a>.</p>
+<h2 id="advanced-configuration"><a class="header" href="#advanced-configuration">Advanced Configuration</a></h2>
+<p>Typically the information given in <a href="./bridge_setup.html">Bridge Setup</a> is good enough for small
+to medium sized bridges, but if you expect to handle extremely heavy IRC or Matrix traffic
+then it might be looking at tweaking some of these options.</p>
+<p>It should be noted that often the homeserver you have connected to the bridge will play a greater
+role in the perceived performance of your bridge, as it is usually the bottleneck in either handing
+(federated) traffic towards the bridge, or persisting and federating traffic from the bridge to users.</p>
+<p>It is strongly advised that if you are suffering from performance issues, you should identify if there
+are problems with your homeserver first.</p>
+<h3 id="quit-debouncing"><a class="header" href="#quit-debouncing">Quit Debouncing</a></h3>
+<p><a href="https://github.com/matrix-org/matrix-appservice-irc/blob/develop/config.sample.yaml#L93">Setting documentation</a></p>
+<p>This setting handles the &quot;debouncing&quot; of quits when the server sees an extreme amount of QUIT events
+from the IRC server. IRC servers often suffer from <a href="https://en.wikipedia.org/wiki/Netsplit">netsplits</a>
+which manifest as many QUITs. The IRC bridge will handle one QUIT per <em>room</em>, so 5 users quitting from 5
+rooms would manifest as 25 events. This can quickly overwhelm the bridge.</p>
+<p>The quit debouner is often overkill for smaller bridges, but if you find that the bridge becomes overwhelmed
+and unresponsive after a netsplit then it enabled.</p>
+<h3 id="membership-syncing"><a class="header" href="#membership-syncing">Membership syncing</a></h3>
+<p><a href="https://github.com/matrix-org/matrix-appservice-irc/blob/develop/config.sample.yaml#L222">Setting documentation</a></p>
+<p>Typically it's wise to leave this setting on by default, as populating the memberlists on both sides of the
+bridge leads to a more pleasant experience for users. However as the setting requires the constant adjustment
+of the member lists on both sides of the bridge it can be more intensive on homeserver resources. You can
+also adjust the membership settings of individual rooms or channels to lessen the effect.</p>
+<h2 id="hot-reloading"><a class="header" href="#hot-reloading">Hot Reloading</a></h2>
+<p>The bridge supports hot-reloading of the configuration file by sending a <code>SIGHUP</code> signal. Some configuration
+keys will not be reloaded as they are required to be static to avoid bridge instability. Unsupported keys are
+marked in <a href="https://github.com/matrix-org/matrix-appservice-irc/blob/develop/config.sample.yaml">config.sample.yaml</a>.
+Hot reloading is useful as restarting the bridge will drop all IRC connections, so it's worth using this
+method to avoid disruption.</p>
+<p>Typically the process is as follows.</p>
+<pre><code class="language-sh">$ ps -A | grep 'node'
+31960 pts/7    00:00:13 node
+# and then send the SIGHUP signal
+$ kill -SIGHUP 31960
+</code></pre>
+<p>The logs will then mention <code>Bridge config was reloaded, applying changes</code> which confirms
+that the reload has taken place.</p>
+<h2 id="enforcing-matrix-users-to-be-connected-to-irc"><a class="header" href="#enforcing-matrix-users-to-be-connected-to-irc">Enforcing Matrix users to be connected to IRC</a></h2>
+<p>When configured to do so, the IRC bridge typically tries to join all Matrix users to
+the IRC channels to avoid Matrix users being able to read a conversation without being visible to IRC users.
+However since it is not always possible to ensure this happens in a timely manner, there is a safety net feature.</p>
+<p>Administrators can choose the default behaviour of allowing messages to continue to be bridged to the
+room (potentially leaking history) or enforcing strict rules to ensure that all Matrix users are joined
+before <em>anyone</em> can read messages. This can be enabled by setting</p>
+<pre><code class="language-yaml">...
+membershipLists:
+  global:
+    ircToMatrix:
+      requireMatrixJoined: true
+</code></pre>
+<p>in the config. Users can choose to disable this on a per-room basis by modifying their
+<a href="./room_configuration.html#allowunconnectedmatrixusers">room config</a> options, if the bridge permits it.</p>
+<h2 id="subscribing-to-moderation-policies"><a class="header" href="#subscribing-to-moderation-policies">Subscribing to Moderation policies</a></h2>
+<p>Matrix has support for specifying <a href="https://spec.matrix.org/v1.2/client-server-api/#moderation-policy-lists">moderation policy lists</a>.
+Moderation policies are set by services such as <a href="https://github.com/matrix-org/mjolnir">Mjolnir</a> and can be
+used to inform other services as to how to deal with content.</p>
+<p>The bridge can subscribe to rooms containing these policies and can then choose to filter out users and
+servers matching these rules.</p>
+<pre><code class="language-yaml">  banLists:
+    rooms:
+      - &quot;#matrix-org-coc-bl:matrix.org&quot; # The matrix.org code of conduct ban list
+</code></pre>
+<p>A <code>m.ban</code> rule will forcibly kill the connection of any user matching a ban, and will not
+allow them to reconnect. The rules are enforced on startup, when the ban list is modified
+and when the configuration file is reloaded.</p>
+<p>Administrators should beware that this configuration is <strong>very</strong> powerful, and any user caught
+on this list will not be able to use the bridge at all.</p>
+<h2 id="metrics--grafana"><a class="header" href="#metrics--grafana">Metrics / Grafana</a></h2>
+<p>The bridge includes a prometheus compatible metrics endpoint which can be used to inspect
+the state of the bridge. The repository also includes a grafana dashboard; more information
+can be found in <a href="https://github.com/matrix-org/matrix-appservice-irc/blob/develop/contrib/GRAFANA.md">GRAFANA.md</a>.</p>
+<h2 id="the-debug-api"><a class="header" href="#the-debug-api">The Debug API</a></h2>
+<p>The Debug API allows you to perform administrative actions on the bridge such as killing a IRC
+connection, inspecting connected users or unbridging a room. You can learn more by reading
+the <a href="./debug_api.html">Debug API</a> documentation.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="bridge-setup"><a class="header" href="#bridge-setup">Bridge Setup</a></h1>
+<p>This guide is written for server administrators who would like to set up their own IRC bridge to one or more networks.</p>
+<h2 id="before-setting-up"><a class="header" href="#before-setting-up">Before setting up</a></h2>
+<p>We recommend using Node.js <code>v16</code> or greater when setting up the bridge, as we use <code>worker_threads</code> to handle
+some of the traffic for larger bridges.</p>
+<p>Versions older than Node 16 are no longer supported.</p>
+<p>You should also ensure you have a recent Matrix homeserver that you have permission to bridge to. This can
+either be your own, or one that you have the ability to setup Application Services with.</p>
+<p>Finally <strong>you should seek permission from the operator of the bridged IRC network before running this bridge.</strong>
+<strong>Bridging may be against the IRC network's Terms of Use.</strong>. Failure to do so may get your bridge banned and
+your IP address blocked by the IRC network. Most networks will only allow a limited number of IRC connections
+from a single IP, so you should ask them for permission before bridging.</p>
+<h2 id="1-installation"><a class="header" href="#1-installation">1. Installation</a></h2>
+<h3 id="install-from-git-preferred"><a class="header" href="#install-from-git-preferred">Install from git (preferred)</a></h3>
+<pre><code class="language-sh">git clone https://github.com/matrix-org/matrix-appservice-irc.git
+cd matrix-appservice-irc
+git checkout master # or 0.x.x to pin to a version
+yarn
+</code></pre>
+<p>The bridge can now be started by: <code>node app.js</code>.</p>
+<h3 id="global-install"><a class="header" href="#global-install">Global Install</a></h3>
+<pre><code class="language-sh"># --global requires super user on most systems
+$ yarn install --global matrix-appservice-irc 
+</code></pre>
+<h3 id="docker"><a class="header" href="#docker">Docker</a></h3>
+<p>The bridge has a <a href="https://hub.docker.com/r/matrixdotorg/matrix-appservice-irc">Docker image</a>.</p>
+<h2 id="2-configuration"><a class="header" href="#2-configuration">2. Configuration</a></h2>
+<p>The bridge must be configured before it can be run. This tells the bridge where to find the homeserver
+and how to bridge IRC channels/users.</p>
+<ul>
+<li>Copy <code>config.sample.yaml</code> to <code>config.yaml</code>.
+<ul>
+<li>For Docker, you will want to make a directory called <code>data</code> and store the <code>config.yaml</code> inside.</li>
+</ul>
+</li>
+<li>Modify <code>config.yaml</code> to point to your homeserver and IRC network of choice.</li>
+</ul>
+<p>The sample config has detailed information about each option. Please read them carefully.</p>
+<h2 id="3-database"><a class="header" href="#3-database">3. Database</a></h2>
+<p>The bridge comes with support for either PostgreSQL or NEDB. PostgreSQL is preferred as it is faster,
+easier to handle than flat files and allows you to inspect the state of it while the bridge is running.</p>
+<p>Setting up PostgresSQL for the bridge is as easy as doing:</p>
+<pre><code class="language-postgres">-- Authenticate with postgres, then
+psql 'postgres://dbstring'
+CREATE DATABASE ircbridge;
+CREATE USER ircbridge WITH PASSWORD 's3cr3t';
+GRANT ALL ON DATABASE ircbridge TO ircbridge;
+-- Then modify your config.yaml to include the database connection string.
+</code></pre>
+<h2 id="4-registration"><a class="header" href="#4-registration">4. Registration</a></h2>
+<p>The bridge needs to generate a registration file which can be passed to the homeserver to tell the
+homeserver which Matrix events the bridge should receive.</p>
+<p>Execute the following command:</p>
+<pre><code>node app.js -r -f appservice-registration-irc.yaml -u &quot;http://localhost:8090&quot; -c config.yaml -l my_bot
+</code></pre>
+<p>Change <code>-u &quot;http://localhost:8090&quot;</code> to wherever your Matrix server can contact this IRC bridge.
+By changing the option <code>-l my_bot</code> you can modify the localpart of the bridge bot user. It contacts
+Matrix users of your bridge to control their usage of the bridge (e.g. to change their nickname).</p>
+<p>You should get something like:</p>
+<pre><code>id: irc
+hs_token: 82c7a893d020b5f28eaf7ba31e1d1091b12ebafc5ceb1b6beac2b93defc1b301
+as_token: a66ae41f82b05bebfc9c259135ce1ce35c856000d542ab5d1f01e0212439d534
+namespaces:
+  users:
+    - exclusive: true
+      regex: '@irc_.*:yourhomeserverdomain'
+  aliases:
+    - exclusive: true
+      regex: '#irc_.*:yourhomeserverdomain'
+url: 'http://localhost:8090'
+sender_localpart: appservice-irc
+rate_limited: false
+protocols:
+  - irc
+</code></pre>
+<p>For Docker, copy the above to <code>data/appservice-registration-irc.yaml</code> and replace as necessary.</p>
+<p><em>More information on the CLI args can be found by running</em> <code>$ node app.js --help</code>.</p>
+<p>This will create a registration YAML file. Edit your <strong>homeserver</strong> config file (e.g. <code>homeserver.yaml</code>) to
+point to this registration file:</p>
+<pre><code class="language-yaml"># homeserver.yaml
+app_service_config_files: [&quot;appservice-registration-irc.yaml&quot;]
+</code></pre>
+<h2 id="5-running"><a class="header" href="#5-running">5. Running</a></h2>
+<p>Finally, the bridge can be run using the following command:</p>
+<pre><code>$ node app.js -c config.yaml -f appservice-registration-irc.yaml -p 8090
+</code></pre>
+<p>Or for Docker:</p>
+<pre><code># Remember to expose ports for metrics, debug API if you need to.
+docker run --volume $PWD/data:/data --publish 8090 matrixdotorg/matrix-appservice-irc
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="debug-api"><a class="header" href="#debug-api">Debug API</a></h1>
+<p>The Debug API is a powerful HTTP API to make adjustments to the bridge at runtime, and is typically useful
+when administrating large bridges. Some functionality has moved to the <a href="admin_room">Admin Room</a>
+interface as sending commands over Matrix is preferred, however, many powerful commands are exposed here.</p>
+<p>You can enable this feature in the config file:</p>
+<pre><code class="language-yaml">ircService:
+  # ...
+  debugApi:
+    enabled: true
+    port: 11100
+</code></pre>
+<p><strong>Note: The Debug API listens on <code>0.0.0.0</code> by default, so be careful to lock down access to this port.</strong></p>
+<p>To access the API over <code>curl</code>:</p>
+<pre><code class="language-sh">curl http://127.0.0.1:11100/inspectUsers?access_token=AS_TOKEN_FROM_REGISTRATION_FILE
+</code></pre>
+<h2 id="endpoints"><a class="header" href="#endpoints">Endpoints</a></h2>
+<!-- no toc -->
+<ul>
+<li><a href="debug_api.html#get-inspectusersregexuserregex"><code>GET /inspectUsers?regex={userRegex}</code></a></li>
+<li><a href="debug_api.html#post-killroom"><code>POST /killRoom</code></a></li>
+<li><a href="debug_api.html#post-killuser"><code>POST /killUser</code></a></li>
+<li><a href="debug_api.html#post-reapusers"><code>POST /reapUsers</code></a></li>
+<li><a href="debug_api.html#get-ircdomainuseruser_id"><code>GET /irc/$domain/user/$user_id</code></a></li>
+<li><a href="debug_api.html#post-ircdomainuseruser_id"><code>POST /irc/$domain/user/$user_id</code></a></li>
+</ul>
+<h3 id="get-inspectusersregexuserregex"><a class="header" href="#get-inspectusersregexuserregex"><code>GET /inspectUsers?regex={userRegex}</code></a></h3>
+<h4 id="request-parameters"><a class="header" href="#request-parameters">Request Parameters</a></h4>
+<ul>
+<li><code>userRegex</code> A JS regex string which should match against MXIDs. E.g. <code>@foobar_.*:matrix.org</code>.</li>
+</ul>
+<h4 id="example-response"><a class="header" href="#example-response">Example Response</a></h4>
+<pre><code class="language-js">{
+  &quot;users&quot;: {
+    &quot;@Half-Shot:half-shot.uk&quot;: [
+      {
+        &quot;channels&quot;: [
+          &quot;#matrix&quot;
+        ],
+        &quot;dead&quot;: false,
+        &quot;server&quot;: &quot;libera.chat&quot;,
+        &quot;nick&quot;: &quot;Half-Shot&quot;
+      }
+    ]
+  }
+}
+</code></pre>
+<h3 id="post-killroom"><a class="header" href="#post-killroom"><code>POST /killRoom</code></a></h3>
+<p>Stop a room from being bridged. This will remove IRC ghost users from the room
+and disconnect Matrix users from the channel.</p>
+<p>The <a href="admin_room#unlink">Admin Room</a> features a less
+powerful version of this command.</p>
+<h4 id="request-body"><a class="header" href="#request-body">Request Body</a></h4>
+<pre><code class="language-json5">{
+  &quot;room_id&quot;: &quot;!foo:bar&quot;, // The Matrix Room ID. Required.
+  &quot;domain&quot;: &quot;irc.foo.bar&quot;, // The IRC domain. Required.
+  &quot;channel&quot;: &quot;#evilcave&quot;, // The IRC channel. Required.
+  &quot;leave_notice&quot;: true, // Should a notice be sent on unbridge. Default: true.
+  &quot;remove_alias&quot;: true, // Should the room alias for the room be removed. Default: true.
+}
+</code></pre>
+<h4 id="response-body"><a class="header" href="#response-body">Response Body</a></h4>
+<p>The response body will contain a JSON array of stages that were successful and failed as
+it's possible for this command to only be partially successful.</p>
+<p>Typical successful response:</p>
+<pre><code class="language-json5">{
+  error: [],
+  stages: [&quot;Removed room from store&quot;, &quot;Left notice in room&quot;, &quot;Deleted alias for room&quot;, &quot;Parted clients where applicable.&quot;],
+}
+</code></pre>
+<p>Typical error response:</p>
+<pre><code class="language-json5">{
+  error: [&quot;Room not found&quot;],
+  stages: [],
+}
+</code></pre>
+<h3 id="post-killuser"><a class="header" href="#post-killuser"><code>POST /killUser</code></a></h3>
+<p>This will kill a connection to IRC for a given user on all networks they are connected to.</p>
+<h4 id="request-body-1"><a class="header" href="#request-body-1">Request Body</a></h4>
+<pre><code class="language-js">{
+  &quot;user_id&quot;: &quot;@foo:bar&quot;,
+  &quot;reason&quot;: &quot;Trust nobody&quot;
+}
+</code></pre>
+<h4 id="response-body-1"><a class="header" href="#response-body-1">Response Body</a></h4>
+<p>If a disconnection was successful, the bridge will emit &quot;null&quot;. Otherwise, it may emit an error
+message in plain text.</p>
+<h3 id="post-reapusers"><a class="header" href="#post-reapusers"><code>POST /reapUsers</code></a></h3>
+<p>This will kill multiple connections for users considered &quot;idle&quot;. This is a powerful and
+expensive operation and should be taken with care.</p>
+<p>Idleness is calculated by how long it has been since a user has sent a message/joined/left a room.
+This is calculated by whether the appservice bot or it's users have seen the user perform any actions
+(i.e. left a IRC bridged room or sent a message). Due to limitations of Matrix, it is not possible to
+discover &quot;lurkers&quot;.</p>
+<h4 id="request-parameters-1"><a class="header" href="#request-parameters-1">Request Parameters</a></h4>
+<ul>
+<li><code>server</code> is the server name you wish to disconnect users from. This is the key of
+your server configuration object in the config section.</li>
+<li><code>since</code> is the number of hours a user has been idle for to be considered <code>idle</code>. This must be an integer.</li>
+<li><code>reason</code> is the reason string to disconnect users with. E.g. &quot;You have been idle for too long&quot;.</li>
+<li><code>dryrun</code> is whether to actually disconnect users, or just calculate which users
+should be disconnected and output it to the response.</li>
+</ul>
+<h4 id="response-body-2"><a class="header" href="#response-body-2">Response Body</a></h4>
+<p>The bridge will &quot;stream&quot; logs to the client in plain text format. Do not close the
+connection before the operation has finished.</p>
+<h3 id="get-ircdomainuseruser_id"><a class="header" href="#get-ircdomainuseruser_id"><code>GET /irc/$domain/user/$user_id</code></a></h3>
+<p>Return the state of a user's <code>BridgedClient</code>. Typically this is only useful for deep debugging
+of connection issues.</p>
+<h4 id="request-parameters-2"><a class="header" href="#request-parameters-2">Request Parameters</a></h4>
+<ul>
+<li><code>$domain</code> The domain of the IRC network you are requesting information on.</li>
+<li><code>$user_id</code> The user_id of the user you are requesting information for.</li>
+</ul>
+<h4 id="response-body-3"><a class="header" href="#response-body-3">Response Body</a></h4>
+<p>A plain text dump of the object via the <a href="https://nodejs.org/dist/latest-v16.x/docs/api/util.html#util_util_inspect_object_options">inspect</a>
+API.</p>
+<h3 id="post-ircdomainuseruser_id"><a class="header" href="#post-ircdomainuseruser_id"><code>POST /irc/$domain/user/$user_id</code></a></h3>
+<p>Send raw IRC command(s) as the given user.</p>
+<h4 id="request-parameters-3"><a class="header" href="#request-parameters-3">Request Parameters</a></h4>
+<ul>
+<li><code>$domain</code> The domain of the IRC network you are requesting information on.</li>
+<li><code>$user_id</code> The user_id of the user you are requesting information for.</li>
+</ul>
+<h4 id="request-body-2"><a class="header" href="#request-body-2">Request Body</a></h4>
+<p>The body should be a newline delimited list of commands to send to IRC.</p>
+<h3 id="response-format"><a class="header" href="#response-format">Response format</a></h3>
+<p>The bridge will wait 3 seconds to buffer up any responses from the IRCD and return
+them in a newline delimited JSON format.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="connection-pooling"><a class="header" href="#connection-pooling">Connection Pooling</a></h1>
+<section class="warning">
+Connection pooling is a new feature and may not be 100% stable. While extensive testing efforts have been made, it may still format your cat.
+</section>
+<p>The IRC bridge can be configured to run it's IRC connections through a seperate process from the main bridge,
+allowing you to restart and update (in most cases) the main process while keeping connections alive. This in 
+effect allows you to have a bridge that <em>appears</em> to not restart (sometimes nicknamed eternal bridges).</p>
+<p>To configure the bridge in this mode you will need to setup a <a href="https://redis.io/">Redis</a> instance. Ideally, you
+<strong>should</strong> run the bridge with Redis <code>6.2.0</code> or greater as it is more efficent when used with streams. The bridge
+requires Redis <code>5.0.0</code> or greater to run.</p>
+<p>In your bridge, configure the following:</p>
+<pre><code class="language-yaml">connectionPool:
+  # The Redis URI to connect to 
+  redisUrl: redis://user:password@host:port/dbnum
+  # Should the connections persist after the bridge successfully shuts down?
+  persistConnectionsOnShutdown: true
+</code></pre>
+<p>And then you need to run the pool using:</p>
+<pre><code class="language-sh">export REDIS_URL=redis://localhost:6379
+export METRICS_HOST=localhost
+export METRICS_PORT=7002
+export LOGGING_LEVEL=info
+
+yarn start:pool
+</code></pre>
+<h3 id="upgrading-the-bridge"><a class="header" href="#upgrading-the-bridge">Upgrading the bridge</a></h3>
+<p>The bridge supports being upgraded while the connection pool service is running, and can just be updated as normal.
+There are exceptions to this rule when the protocol of the connection pool changes per release. While we endeavour
+to point this out in the documentation, the bridge will also fail to start if it detects a protocol change.</p>
+<h3 id="persisting-connections"><a class="header" href="#persisting-connections">Persisting connections</a></h3>
+<p>Connections are persisted between restarts of the main bridge process <strong>if</strong> <code>persistConnectionsOnShutdown</code> is 
+set to <code>true</code>. The default is to keep the existing single-process behaviour of closing connections on shutdown, however.</p>
+<p>If the bridge is interrupted (e.g. the process is killed by the operating system before it can complete the shutdown routine)
+then the connections WILL persist between restarts.</p>
+<p>Closing the connection pool process will immedtiately terminate any connection processes. The bridge will NOT attempt
+to reconnect users if the pool process dies, and instead will eventually timeout and restart after a period.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="irc-operators"><a class="header" href="#irc-operators">IRC Operators</a></h1>
+<p>This chapter describes useful information about the bridge for IRC operators or IRC users.</p>
+<p>The IRC bridge provides each Matrix user with one IRC connection in order to bridge them &quot;natively&quot;
+into the IRC network, as so they can largely be treated as real users. Due to the 1:1 connection system,
+it is often useful that the IRCD network provides the bridge host with a more relaxed ILINE limit depending
+on the number of Matrix users they'd expect to use the bridge.</p>
+<h3 id="the-matrix-experience"><a class="header" href="#the-matrix-experience">The Matrix experience</a></h3>
+<p>When a Matrix room is bridged to IRC, all users (by default) on the Matrix side will be provided with a connection
+to the room and will show up in the user list on IRC. The IRC users will also appear as &quot;ghosts&quot; on the Matrix side,
+bearing a Matrix ID like <code>@irc_alice:matrix.org</code>. This allows a &quot;native&quot; feeling so that users do not have to worry
+about the complexities of the protocols.</p>
+<p>However as with all bridges, the native feeling can catch IRC or Matrix users unaware when things do not bridge well
+(such as replies/threading or reactions).</p>
+<h3 id="the-m-m-suffix"><a class="header" href="#the-m-m-suffix">The [m]/-M suffix</a></h3>
+<p>By default, the IRC bridge will append a <code>-M</code> to nicks for Matrix users. This is to avoid clashes with a users
+real identity on IRC as well as to highlight that the users are on the bridge (and may not even know the conversation is bridged to IRC).
+The user has the option to change this by going to the bot and sending a <code>!nick</code> command, so the suffix should not
+be used as a blanket detection method.</p>
+<h3 id="whois-information"><a class="header" href="#whois-information">Whois information</a></h3>
+<p>The bridge sets various bits of information about users:</p>
+<p>The realname of a user will be their MxID. By default this will look like:</p>
+<pre><code>* [Half-Shot[m]] (half-shoth@2001:470:1af1:104:0:0:0:2223): @Half-Shot:half-shot.uk
+* [Half-Shot[m]] #matrix-test
+* [Half-Shot[m]] irc2.acc.umu.se :GIMPNet Server
+* [Half-Shot[m]] is using a Secure Connection
+* [Half-Shot[m]] End of WHOIS list.
+</code></pre>
+<h3 id="portals-and-plumbed"><a class="header" href="#portals-and-plumbed">Portals and Plumbed</a></h3>
+<p>A Matrix room can be connected to a IRC network in one of two ways:</p>
+<ul>
+<li>A portal room, which is a Matrix room created by the bridge on demand when a Matrix user attempts
+to join an alias that does not yet exist. E.g. <code>#myproject:libera.chat</code>. The bridge will
+hold power over this room and grant moderator status (half-power) to any IRC operators or Matrix users
+with IRC ops in the room.</li>
+<li>A plumbed room (also known as provisioning). A Matrix user may create a room ahead of time for their
+community and later on decide to &quot;plumb in&quot; IRC users to that room. They can do this via an interactive
+UI in Element, via the <code>!plumb</code> command or even via a HTTP endpoint. If done interactively, the bridge
+has a verification process to ensure the user on the Matrix side has the blessing of the IRC ops first.
+However, it's possible for the IRC bot to lack kick abilities in the room so kicks and bans may not be
+bridged both ways.</li>
+</ul>
+<p>(This is explained in more depth at <a href="https://matrix.org/docs/guides/types-of-bridging#types-of-rooms">matrix.org</a>.)</p>
+<p>Additionally, a channel may be connected to one portal and multiple plumbed rooms without issue as the
+messages from Matrix users are replicated to the other rooms for them. We typically do not recommend
+multiple points of entry to the channel due to the obvious confusion this causes.</p>
+<h3 id="connection-failure"><a class="header" href="#connection-failure">Connection failure</a></h3>
+<p>If a Matrix user fails to join a channel due to a ban, they are kicked from it. If the Matrix user
+fails to get a connection to IRC at all, they are also kicked from any rooms they are part of. The exception
+to this rule is if the bridge bot (which does the kicking) lacks permission to kick members of the room.</p>
+<h3 id="line-limits"><a class="header" href="#line-limits">Line limits</a></h3>
+<p>The IRC bridge allows admins to configure a maximum amount of lines that can be sent at a time to a channel
+by a Matrix user. The Matrix spec allows events to be sent by users up to 65k in size, so with some margin for
+event padding, a message could feasibly be over 64k in size. The Matrix spec has no limit on how many lines
+a single message can have so to avoid this issue the bridge will &quot;pastebin&quot; any overly large message rather
+than send the message line by line.</p>
+<p>This can be confusing for IRC users, so we typically try to have a sensible limit to line count. By default
+the bridge only pastebins a message that is over 3 lines in length to avoid problems, but this can be increased
+at the discretion of the bridge admin.</p>
+<h3 id="history-protection"><a class="header" href="#history-protection">History protection</a></h3>
+<p>Matrix is naturally history preserving, so that any message sent to a Matrix room is sent to all
+participating users/servers. They will be able to read these messages for as long as they
+are joined to the room.</p>
+<p>Bridged IRC rooms do not share history to Matrix users from before they have joined by default,
+but history visibility can be changed by users with the correct power level on Matrix.</p>
+<p>The bridge can also be configured to stop bridging all traffic from a channel to Matrix if it
+cannot guarantee that a Matrix user is joined to the IRC channel, which is usually a step of last
+resort should the bridge have failed to connect them. See the <a href="administrators_guide.html#enforcing-matrix-users-to-be-connected-to-irc">administrators guide</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="docs/_site/main.js"></script>
+        <script src="docs/_site/version.js"></script>
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+    </div>
+    </body>
+</html>
