@@ -28,7 +28,7 @@ describe('Ensure quit messsage is sent', () => {
         const cRoomId = await testEnv.joinChannelHelper(alice, adminRoom, channel);
 
         // Ensure we join the IRC side
-        await alice.sendText(cRoomId, `Hello world!`);
+        alice.sendText(cRoomId, `Hello world!`);
         await bob.waitForEvent('message', 10000);
 
         const quitEvent = bob.waitForEvent('quit', 10000);
@@ -39,5 +39,7 @@ describe('Ensure quit messsage is sent', () => {
         expect(nick).toEqual(`M-${opts.matrixLocalparts?.[0]}`);
         expect(message).toEqual('Quit: Reconnecting');
         expect(channels).toContain(channel);
+        alice.sendText(cRoomId, `I'm back baby!`);
+        await bob.waitForEvent('message', 10000);
     });
 });

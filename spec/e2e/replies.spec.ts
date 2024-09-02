@@ -56,6 +56,7 @@ describe('Reply handling', () => {
         expect(ircMessage[2]).toContain("Short reply");
         expect(ircMessage[2]).not.toContain("Original message");
 
+        // Delay for the duration it takes to get a long reply.
         await new Promise(r => setTimeout(r, 1000));
 
         bridgedMessage = bob.waitForEvent('message', 10000);

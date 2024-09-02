@@ -13,7 +13,6 @@ export interface BridgeConfig {
     };
     homeserver: {
         url: string;
-        media_url?: string;
         domain: string;
         enablePresence?: boolean;
         dropMatrixMessagesAfterSecs?: number;
@@ -23,6 +22,12 @@ export interface BridgeConfig {
     ircService: {
         servers: {[domain: string]: IrcServerConfig};
         matrixHandler?: MatrixHandlerConfig;
+        mediaProxy: {
+            signingKeyPath: string;
+            ttlSeconds: number;
+            bindPort: number;
+            publicUrl: string;
+        };
         ircHandler?: IrcHandlerConfig;
         provisioning: ProvisionerConfig;
         logging: LoggerConfig;

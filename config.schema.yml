@@ -44,8 +44,6 @@ properties:
         properties:
             url:
                 type: "string"
-            media_url:
-                type: "string"
             domain:
                 type: "string"
             dropMatrixMessagesAfterSecs:
@@ -171,6 +169,20 @@ properties:
                         type: "string"
                     shortReplyTresholdSeconds:
                         type: "integer"
+                    ignoreFunctionalMembersInAdminRooms:
+                        type: "boolean"
+            mediaProxy:
+                type: "object"
+                properties:
+                    signingKeyPath:
+                        type: "string"
+                    ttlSeconds:
+                        type: "integer"
+                    bindPort:
+                        type: "integer"
+                    publicUrl:
+                        type: "string"
+                required: ["signingKeyPath", "ttlSeconds", "bindPort", "publicUrl"]
             ircHandler:
                 type: "object"
                 properties:
@@ -483,4 +495,4 @@ properties:
                                 kickReason:
                                     type: "string"
                             required: ["regex"]
-        required: ["servers"]
+        required: ["servers", "mediaProxy"]

@@ -1065,6 +1065,87 @@ describe("Admin rooms", function() {
             );
     });
 
+    it("mx bot should be NOT kicked when there are > 2 users in room and functional members are present", async () => {
+
+        const intent = env.clientMock._intent(botUserId);
+        const sdk = intent.underlyingClient;
+        sdk.getRoomState.and.callFake(
+            function (roomId) {
+                expect(roomId).toBe(adminRoomId, 'Room state returned should be for admin room');
+                return Promise.resolve([
+                    {
+                        content: {membership: "join"},
+                        type: "m.room.member",
+                        state_key: "@bot:fake"
+                    },
+                    {
+                        content: {membership: "join"},
+                        type: "m.room.member",
+                        state_key: "@user1:fake"
+                    },
+                    {
+                        content: {membership: "join"},
+                        type: "m.room.member",
+                        state_key: "@user2:fake"
+                    }, {
+                        type: "io.element.functional_members",
+                        state_key: "",
+                        content: {
+                            service_members: ["@user2:fake"]
+                        }
+                    }
+                ]);
+            }
+        );
+
+        intent.leaveRoom.and.callFake(function(roomId) {
+            fail('Bot should not leave room');
+        });
+
+        let sentMessage = true;
+        sdk.sendEvent.and.callFake((roomId, type, content) => {
+            expect(roomId).toBe(adminRoomId, 'Bot did not send message to admin room');
+            sentMessage = true;
+            return Promise.resolve({});
+        });
+
+        await env.mockAppService._trigger("type:m.room.member", {
+            content: {
+                membership: "join",
+            },
+            state_key: botUserId,
+            sender: "@user1:localhost",
+            room_id: adminRoomId,
+            type: "m.room.member"
+        });
+
+        await env.mockAppService._trigger("type:m.room.member", {
+            content: {
+                membership: "join",
+            },
+            state_key: botUserId,
+            sender: "@user2:localhost",
+            room_id: adminRoomId,
+            type: "m.room.member"
+        });
+
+        // trigger the bot to leave
+        await env.mockAppService._trigger("type:m.room.message", {
+            content: {
+                body: "!help",
+                msgtype: "m.text"
+            },
+            sender: "@user2:localhost",
+            room_id: adminRoomId,
+            type: "m.room.message"
+        }).then(
+            () => {
+                expect(sentMessage).toBe(true);
+            },
+            (err) => {console.log(err)}
+        );
+});
+
     it("mx bot should NOT be kicked when there are 2 users in room and a message is sent", async () => {
             const intent = env.clientMock._intent(botUserId);
             const sdk = intent.underlyingClient;

@@ -17,7 +17,7 @@ limitations under the License.
 import { IrcAction } from "./IrcAction";
 
 import ircFormatting = require("../irc/formatting");
-import { ContentRepo, Intent } from "matrix-appservice-bridge";
+import { Intent, MediaProxy } from "matrix-appservice-bridge";
 import escapeStringRegexp from "escape-string-regexp";
 import logging from "../logging";
 const log = logging("MatrixAction");
@@ -110,6 +110,7 @@ export class MatrixAction {
         public htmlText: string|null = null,
         public readonly ts: number = 0,
         public replyEvent?: string,
+        private mediaProxy?: MediaProxy,
     ) { }
 
     public get msgType() {
@@ -183,7 +184,7 @@ export class MatrixAction {
         }
     }
 
-    public static fromEvent(event: MatrixMessageEvent, mediaUrl: string, filename?: string) {
+    public static async fromEvent(event: MatrixMessageEvent, mediaProxy: MediaProxy, filename?: string) {
         event.content = event.content || {};
         let type = EVENT_TO_TYPE[event.type] || "message"; // mx event type to action type
         let text = event.content.body;
@@ -212,14 +213,13 @@ export class MatrixAction {
                     fileSize = "(" + Math.round(event.content.info.size / 1024) + "KiB)";
                 }
 
-                let url = ContentRepo.getHttpUriForMxc(mediaUrl, event.content.url);
+                const url = await mediaProxy.generateMediaUrl(event.content.url);
                 if (!filename && event.content.body && /\S*\.[\w\d]{2,4}$/.test(event.content.body)) {
                     // Add filename to url if body is a filename.
                     filename = event.content.body;
                 }
 
                 if (filename) {
-                    url += `/${encodeURIComponent(filename)}`;
                     text = `${fileSize} < ${url} >`;
                 }
                 else {

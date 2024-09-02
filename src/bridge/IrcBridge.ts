@@ -1,5 +1,6 @@
 import Bluebird from "bluebird";
 import extend from "extend";
+import * as fs from "fs";
 import * as promiseutil from "../promiseutil";
 import { IrcHandler, MatrixMembership } from "./IrcHandler";
 import { MatrixHandler, MatrixEventInvite, OnMemberEventData, MatrixEventKick } from "./MatrixHandler";
@@ -41,6 +42,7 @@ import {
     UserActivityTracker,
     UserActivityTrackerConfig,
     WeakStateEvent,
+    MediaProxy,
 } from "matrix-appservice-bridge";
 import { IrcAction } from "../models/IrcAction";
 import { DataStore } from "../datastore/DataStore";
@@ -56,6 +58,7 @@ import { TestingOptions } from "../config/TestOpts";
 import { MatrixBanSync } from "./MatrixBanSync";
 import { configure } from "../logging";
 import { IrcPoolClient } from "../pool-service/IrcPoolClient";
+import { webcrypto } from "node:crypto";
 
 const log = getLogger("IrcBridge");
 const DEFAULT_PORT = 8090;
@@ -88,6 +91,7 @@ export class IrcBridge {
     public activityTracker: ActivityTracker|null = null;
     public readonly roomConfigs: RoomConfig;
     public readonly matrixBanSyncer?: MatrixBanSync;
+    private _mediaProxy?: MediaProxy;
     private clientPool!: ClientPool; // This gets defined in the `run` function
     private ircServers: IrcServer[] = [];
     private memberListSyncers: {[domain: string]: MemberListSyncer} = {};
@@ -255,9 +259,10 @@ export class IrcBridge {
             log.info(`Adjusted dropMatrixMessagesAfterSecs to ${newConfig.homeserver.dropMatrixMessagesAfterSecs}`);
         }
 
-        if (oldConfig.homeserver.media_url !== newConfig.homeserver.media_url) {
-            oldConfig.homeserver.media_url = newConfig.homeserver.media_url;
-            log.info(`Adjusted media_url to ${newConfig.homeserver.media_url}`);
+        if (JSON.stringify(oldConfig.ircService.mediaProxy) !== JSON.stringify(newConfig.ircService.mediaProxy)) {
+            await this._mediaProxy?.close();
+            this._mediaProxy = await this.initialiseMediaProxy();
+            log.info(`Media proxy reinitialized`);
         }
 
         await this.setupStateSyncer(newConfig);
@@ -306,6 +311,25 @@ export class IrcBridge {
         await this.joinMappedMatrixRooms();
         await banSyncPromise;
         await this.clientPool.checkForBannedConnectedUsers();
+    }
+
+    private async initialiseMediaProxy(): Promise<MediaProxy> {
+        const config = this.config.ircService.mediaProxy;
+        const jwk = JSON.parse(fs.readFileSync(config.signingKeyPath, "utf8").toString());
+        const signingKey = await webcrypto.subtle.importKey('jwk', jwk, {
+            name: 'HMAC',
+            hash: 'SHA-512',
+        }, true, ['sign', 'verify']);
+        const publicUrl = new URL(config.publicUrl);
+
+        const mediaProxy = new MediaProxy({
+            publicUrl,
+            signingKey,
+            ttl: config.ttlSeconds * 1000
+        }, this.bridge.getIntent().matrixClient);
+        await mediaProxy.start(config.bindPort);
+
+        return mediaProxy;
     }
 
     private initialiseMetrics(bindPort: number) {
@@ -523,6 +547,13 @@ export class IrcBridge {
         return `@${this.registration.getSenderLocalpart()}:${this.domain}`;
     }
 
+    public get mediaProxy(): MediaProxy {
+        if (!this._mediaProxy) {
+            throw new Error(`Bridge not yet initialized`);
+        }
+        return this._mediaProxy;
+    }
+
     public getStore() {
         return this.dataStore;
     }
@@ -653,6 +684,8 @@ export class IrcBridge {
         await this.dataStore.ensurePasskeyCanDecrypt();
 
         await this.dataStore.removeConfigMappings();
+
+        this._mediaProxy = await this.initialiseMediaProxy();
 
         if (this.activityTracker) {
             log.info("Restoring last active times from DB");
@@ -958,6 +991,16 @@ export class IrcBridge {
     public async kill(reason?: string) {
         log.info("Killing bridge");
         this.bridgeState = "killed";
+        if (this._mediaProxy) {
+            log.info("Killing media proxy");
+            // We don't care about the outcome since we don't really care
+            // about the state of the bridge after a kill().
+            // Awaiting this tripped up the BOTS-70 unit test for reasons I couldn't figure out,
+            // and I spent a not-worth-it amount of time on it,
+            // so this is me giving up and techdebting it.
+            // Please let me know, future programmer, if you do fix this properly. -- tadzik
+            void this._mediaProxy.close().catch(err => log.warn(`Failed to close MediaProxy: ${err}`));
+        }
         log.info("Killing all clients");
         if (!this.config.connectionPool?.persistConnectionsOnShutdown) {
             this.clientPool.killAllClients(reason);

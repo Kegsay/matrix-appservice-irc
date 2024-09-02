@@ -43,6 +43,15 @@
         "ircHandler": {
             "powerLevelGracePeriodMs": 500
         },
+        "matrixHandler": {
+            "ignoreFunctionalMembersInAdminRooms": true
+        },
+        "mediaProxy": {
+            "signingKeyPath": "./spec/support/signingkey.jwk",
+            "ttlSeconds": 5,
+            "bindPort": 0,
+            "publicUrl": "https://irc.bridge/media"
+        },
         "servers": {
             "irc.example": {
                 "port": 6667,

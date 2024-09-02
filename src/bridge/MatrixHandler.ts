@@ -1,13 +1,13 @@
 import { IrcBridge } from "./IrcBridge";
 import { BridgeRequest, BridgeRequestErr } from "../models/BridgeRequest";
 import {
-    ContentRepo,
     MatrixUser,
     MatrixRoom,
     MembershipQueue,
     StateLookup,
     StateLookupEvent,
     Intent,
+    MediaProxy,
 } from "matrix-appservice-bridge";
 import { IrcUser } from "../models/IrcUser";
 import { ActionType, MatrixAction, MatrixMessageEvent } from "../models/MatrixAction";
@@ -38,6 +38,12 @@ async function reqHandler(req: BridgeRequest, promise: PromiseLike<unknown>|void
 const MSG_PMS_DISABLED = "[Bridge] Sorry, PMs are disabled on this bridge.";
 const MSG_PMS_DISABLED_FEDERATION = "[Bridge] Sorry, PMs are disabled on this bridge over federation.";
 
+const FUNCTIONAL_MEMBERS_EVENT = "io.element.functional_members";
+
+interface FunctionalMembersEventContent {
+    service_members: string[];
+}
+
 export interface MatrixHandlerConfig {
     /* Number of events to store in memory for use in replies. */
     eventCacheSize: number;
@@ -51,6 +57,9 @@ export interface MatrixHandlerConfig {
     longReplyTemplate: string;
     // Format of the text explaining why a message is truncated and pastebinned
     truncatedMessageTemplate: string;
+    // Ignore io.element.functional_members members joining admin rooms.
+    // See https://github.com/vector-im/element-meta/blob/develop/spec/functional_members.md
+    ignoreFunctionalMembersInAdminRooms: boolean;
 }
 
 export const DEFAULTS: MatrixHandlerConfig = {
@@ -60,6 +69,7 @@ export const DEFAULTS: MatrixHandlerConfig = {
     shortReplyTemplate: "$NICK: $REPLY",
     longReplyTemplate: "<$NICK> \"$ORIGINAL\" <- $REPLY",
     truncatedMessageTemplate: "(full message at <$URL>)",
+    ignoreFunctionalMembersInAdminRooms: false,
 };
 
 export interface MatrixEventInvite {
@@ -132,7 +142,6 @@ export class MatrixHandler {
     private readonly metrics: {[domain: string]: {
             [metricName: string]: number;
         };} = {};
-    private readonly mediaUrl: string;
     private memberTracker?: StateLookup;
     private adminHandler: AdminRoomHandler;
     private config: MatrixHandlerConfig = DEFAULTS;
@@ -145,13 +154,14 @@ export class MatrixHandler {
     constructor(
         private readonly ircBridge: IrcBridge,
         config: MatrixHandlerConfig|undefined,
-        private readonly membershipQueue: MembershipQueue
+        private readonly membershipQueue: MembershipQueue,
     ) {
         this.onConfigChanged(config);
-
-        // The media URL to use to transform mxc:// URLs when handling m.room.[file|image]s
-        this.mediaUrl = ircBridge.config.homeserver.media_url || ircBridge.config.homeserver.url;
         this.adminHandler = new AdminRoomHandler(ircBridge, this);
+    }
+
+    private get mediaProxy(): MediaProxy {
+        return this.ircBridge.mediaProxy;
     }
 
     public initialise() {
@@ -277,8 +287,18 @@ export class MatrixHandler {
             (m.content as {membership: string}).membership === "join"
         );
 
+        let functionalMembers = this.config.ignoreFunctionalMembersInAdminRooms &&
+            ((
+                this.memberTracker?.getState(adminRoom.getId(), FUNCTIONAL_MEMBERS_EVENT, "") as StateLookupEvent|null
+            )?.content as FunctionalMembersEventContent)?.service_members || [];
+
+        if (!Array.isArray(functionalMembers)) {
+            // Guard against invalid types.
+            functionalMembers = [];
+        }
+
         // If an admin room has more than 2 people in it, kick the bot out
-        if (members.length > 2) {
+        if (members.filter(m => !functionalMembers.includes(m.state_key)).length > 2) {
             req.log.error(
                 `onAdminMessage: admin room has ${members.length}` +
                 ` users instead of just 2; bot will leave`
@@ -394,7 +414,7 @@ export class MatrixHandler {
      */
     private _onMemberEvent(req: BridgeRequest, event: OnMemberEventData) {
         if (event.content.membership === 'join') {
-            this.memberJoinTs.set(`${event.room_id}/${event.state_key}`, event.origin_server_ts ?? Date.now());
+            this.memberJoinTs.set(`${event.room_id}/${event.state_key}`, Date.now());
         }
         else {
             this.memberJoinTs.delete(`${event.room_id}/${event.state_key}`);
@@ -889,9 +909,7 @@ export class MatrixHandler {
             req.log.debug("Message body: %s", event.content.body);
         }
 
-        const mxAction = MatrixAction.fromEvent(
-            event, this.mediaUrl
-        );
+        const mxAction = await MatrixAction.fromEvent(event, this.mediaProxy);
 
         // check if this message is from one of our virtual users
         const servers = this.ircBridge.getServers();
@@ -1151,7 +1169,7 @@ export class MatrixHandler {
 
         // This is true if the upload was a success
         if (contentUri) {
-            const httpUrl = ContentRepo.getHttpUriForMxc(this.mediaUrl, contentUri);
+            const httpUrl = await this.mediaProxy.generateMediaUrl(contentUri);
             // we check event.content.body since ircAction already has the markers stripped
             const codeBlockMatch = event.content.body.match(/^```(\w+)?/);
             if (codeBlockMatch) {
@@ -1162,7 +1180,7 @@ export class MatrixHandler {
                 };
             }
             else {
-                const explanation = renderTemplate(this.config.truncatedMessageTemplate, { url: httpUrl });
+                const explanation = renderTemplate(this.config.truncatedMessageTemplate, { url: httpUrl.toString() });
                 let messagePreview = trimString(
                     potentialMessages[0],
                     ircClient.getMaxLineLength() - 4 /* "... " */ - explanation.length - ircRoom.channel.length
@@ -1178,7 +1196,7 @@ export class MatrixHandler {
             }
 
             const truncatedIrcAction = IrcAction.fromMatrixAction(
-                MatrixAction.fromEvent(event, this.mediaUrl)
+                await MatrixAction.fromEvent(event, this.mediaProxy)
             );
             if (truncatedIrcAction) {
                 await this.ircBridge.sendIrcAction(ircRoom, ircClient, truncatedIrcAction);
@@ -1200,9 +1218,9 @@ export class MatrixHandler {
 
             // Recreate action from modified event
             const truncatedIrcAction = IrcAction.fromMatrixAction(
-                MatrixAction.fromEvent(
+                await MatrixAction.fromEvent(
                     sendingEvent,
-                    this.mediaUrl,
+                    this.mediaProxy,
                 )
             );
             if (truncatedIrcAction) {

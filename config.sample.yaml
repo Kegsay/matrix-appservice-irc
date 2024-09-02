@@ -2,15 +2,8 @@
 # are *REQUIRED*.
 # Unless otherwise specified, these keys CANNOT be hot-reloaded.
 homeserver:
-  # The URL to the home server for client-server API calls, also used to form the
-  # media URLs as displayed in bridged IRC channels:
+  # The URL to the home server for client-server API calls
   url: "http://localhost:8008"
-  #
-  # The URL of the homeserver hosting media files. This is only used to transform
-  # mxc URIs to http URIs when bridging m.room.[file|image] events. Optional. By
-  # default, this is the homeserver URL, specified above.
-  # This key CAN be hot-reloaded.
-  # media_url: "http://media.repo:8008"
 
   # Drop Matrix messages which are older than this number of seconds, according to
   # the event's origin_server_ts.
@@ -87,7 +80,7 @@ ircService:
       # Usually this should be off. Default: false.
       allowExpiredCerts: false
       # Set additional TLS options for the connections to the IRC server.
-      tlsOptions:
+      #tlsOptions:
         # A specific CA to trust instead of the default CAs. Optional.
         #ca: |
         #  -----BEGIN CERTIFICATE-----
@@ -604,6 +597,20 @@ ircService:
     longReplyTemplate: "<$NICK> \"$ORIGINAL\" <- $REPLY"
     # how much time needs to pass between the reply and the original message to switch to the long format
     shortReplyTresholdSeconds: 300
+    # Ignore users mentioned in a io.element.functional_members state event when checking admin room membership
+    ignoreFunctionalMembersInAdminRooms: false
+
+  # Config for the media proxy, required to serve publically accessible URLs to authenticated Matrix media
+  mediaProxy:
+    # To generate a .jwk file:
+    # $ node src/generate-signing-key.js > signingkey.jwk
+    signingKeyPath: "signingkey.jwk"
+    # How long should the generated URLs be valid for
+    ttlSeconds: 3600
+    # The port for the media proxy to listen on
+    bindPort: 11111
+    # The publically accessible URL to the media proxy
+    publicUrl: "https://irc.bridge/media"
 
   # Maximum number of montly active users, beyond which the bridge gets blocked (both ways)
   # RMAUlimit: 100

@@ -1,1 +1,0 @@
-Drop `dynamicChannels.groupId` config option. Groups were unstable and are no longer supported by any Matrix implementations.

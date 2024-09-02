@@ -117,7 +117,7 @@ export interface IrcServerConfig {
     membershipLists: {
         enabled: boolean;
         floodDelayMs: number;
-        ignoreIdleOnStartup?: {
+        ignoreIdleUsersOnStartup?: {
             enabled: true;
             idleForHours: number;
             exclude: string;
@@ -410,11 +410,11 @@ export class IrcServer {
     }
 
     public get ignoreIdleUsersOnStartup(): boolean {
-        return this.config.membershipLists.ignoreIdleOnStartup?.enabled ?? false;
+        return this.config.membershipLists.ignoreIdleUsersOnStartup?.enabled ?? false;
     }
 
     public get ignoreIdleUsersOnStartupAfterMs(): number {
-        return (this.config.membershipLists.ignoreIdleOnStartup?.idleForHours || 0) * 1000 * 60 * 60;
+        return (this.config.membershipLists.ignoreIdleUsersOnStartup?.idleForHours || 0) * 1000 * 60 * 60;
     }
 
     public get ignoreIdleUsersOnStartupExcludeRegex(): RegExp | undefined {
@@ -827,8 +827,8 @@ export class IrcServer {
         });
 
         this.idleUsersStartupExcludeRegex =
-            this.config.membershipLists.ignoreIdleOnStartup?.exclude ?
-                new RegExp(this.config.membershipLists.ignoreIdleOnStartup.exclude)
+            this.config.membershipLists.ignoreIdleUsersOnStartup?.exclude ?
+                new RegExp(this.config.membershipLists.ignoreIdleUsersOnStartup.exclude)
                 : undefined;
     }
 

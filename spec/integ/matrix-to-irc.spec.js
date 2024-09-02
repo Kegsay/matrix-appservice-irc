@@ -632,10 +632,10 @@ describe("Matrix-to-IRC message bridging", function() {
             expect(client.addr).toEqual(roomMapping.server);
             expect(channel).toEqual(roomMapping.channel);
             // don't be too brittle when checking this, but I expect to see the
-            // start of the first line and the mxc fragment
+            // start of the first line and the media proxy url
             expect(text.indexOf(tBody[0])).toEqual(0);
             expect(text.indexOf(tBody[1])).not.toEqual(0);
-            expect(text.indexOf('deadbeefcafe')).not.toEqual(-1);
+            expect(text.includes(config.ircService.mediaProxy.publicUrl)).toEqual(true);
             done();
         });
 
@@ -667,9 +667,9 @@ describe("Matrix-to-IRC message bridging", function() {
                 expect(client.addr).toEqual(roomMapping.server);
                 expect(channel).toEqual(roomMapping.channel);
                 // don't be too brittle when checking this, but I expect to see the
-                // code type and the mxc fragment.
+                // code type and the media proxy url
                 expect(text.indexOf('javascript')).not.toEqual(-1);
-                expect(text.indexOf('deadbeefcafe')).not.toEqual(-1);
+                expect(text.includes(config.ircService.mediaProxy.publicUrl)).toEqual(true);
                 done();
             });
 
@@ -695,10 +695,10 @@ describe("Matrix-to-IRC message bridging", function() {
             expect(client.addr).toEqual(roomMapping.server);
             expect(channel).toEqual(roomMapping.channel);
             // don't be too brittle when checking this, but I expect to see the
-            // start of the first line and the mxc fragment
+            // start of the first line and the media proxy URL
             expect(text.indexOf(tBody[0])).toEqual(0);
             expect(text.indexOf(tBody[1])).not.toEqual(0);
-            expect(text.indexOf('deadbeefcafe')).not.toEqual(-1);
+            expect(text.includes(config.ircService.mediaProxy.publicUrl)).toEqual(true);
             done();
         });
 
@@ -716,17 +716,12 @@ describe("Matrix-to-IRC message bridging", function() {
     it("should bridge matrix images as IRC action with a URL", function(done) {
         const tBody = "the_image.jpg";
         const tMxcSegment = "/somecontentid";
-        const tHsUrl = "https://some.home.server.goeshere/";
 
         env.ircMock._whenClient(roomMapping.server, testUser.nick, "action", (client, channel, text) => {
             expect(client.nick).toEqual(testUser.nick);
             expect(client.addr).toEqual(roomMapping.server);
             expect(channel).toEqual(roomMapping.channel);
-            // don't be too brittle when checking this, but I expect to see the
-            // filename (body) and the http url.
-            expect(text.indexOf(tBody)).not.toEqual(-1);
-            expect(text.indexOf(tHsUrl)).not.toEqual(-1);
-            expect(text.indexOf(tMxcSegment)).not.toEqual(-1);
+            expect(text.includes(config.ircService.mediaProxy.publicUrl)).toEqual(true);
             done();
         });
 
@@ -745,17 +740,12 @@ describe("Matrix-to-IRC message bridging", function() {
     it("should bridge matrix files as IRC action with a URL", function(done) {
         const tBody = "a_file.apk";
         const tMxcSegment = "/somecontentid";
-        const tHsUrl = "https://some.home.server.goeshere/";
 
         env.ircMock._whenClient(roomMapping.server, testUser.nick, "action", (client, channel, text) => {
             expect(client.nick).toEqual(testUser.nick);
             expect(client.addr).toEqual(roomMapping.server);
             expect(channel).toEqual(roomMapping.channel);
-            // don't be too brittle when checking this, but I expect to see the
-            // filename (body) and the http url.
-            expect(text.indexOf(tBody)).not.toEqual(-1);
-            expect(text.indexOf(tHsUrl)).not.toEqual(-1);
-            expect(text.indexOf(tMxcSegment)).not.toEqual(-1);
+            expect(text.includes(config.ircService.mediaProxy.publicUrl)).toEqual(true);
             done();
         });
 
@@ -1087,21 +1077,13 @@ describe("Matrix-to-IRC message bridging with media URL and drop time", function
     it("should bridge matrix files as IRC action with a configured media URL", function(done) {
         let tBody = "a_file.apk";
         let tMxcSegment = "/somecontentid";
-        let tMediaUrl = mediaUrl;
-        let tHsUrl = "http://somedomain.com";
-        const sdk = env.clientMock._client(config._botUserId);
 
         env.ircMock._whenClient(roomMapping.server, testUser.nick, "action",
         function(client, channel, text) {
             expect(client.nick).toEqual(testUser.nick);
             expect(client.addr).toEqual(roomMapping.server);
             expect(channel).toEqual(roomMapping.channel);
-            // don't be too brittle when checking this, but I expect to see the
-            // filename (body) and the http url.
-            expect(text.indexOf(tBody)).not.toEqual(-1, "File name not present");
-            expect(text.indexOf(tHsUrl)).toEqual(-1, "HS URL present instead of media URL");
-            expect(text.indexOf(tMediaUrl)).not.toEqual(-1, "No media URL");
-            expect(text.indexOf(tMxcSegment)).not.toEqual(-1, "No Mxc segment");
+            expect(text.includes(config.ircService.mediaProxy.publicUrl)).toEqual(true);
             done();
         });
 

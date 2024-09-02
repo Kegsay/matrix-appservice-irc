@@ -3,6 +3,7 @@
     filename = "CHANGELOG.md"
     directory = "changelog.d"
     issue_format = "[\\#{issue}](https://github.com/matrix-org/matrix-appservice-irc/issues/{issue})"
+    ignore = ['.gitkeep']
 
     [[tool.towncrier.type]]
         directory = "feature"
