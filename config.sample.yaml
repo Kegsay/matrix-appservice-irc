@@ -87,7 +87,7 @@ ircService:
       # Usually this should be off. Default: false.
       allowExpiredCerts: false
       # Set additional TLS options for the connections to the IRC server.
-      tlsOptions:
+      #tlsOptions:
         # A specific CA to trust instead of the default CAs. Optional.
         #ca: |
         #  -----BEGIN CERTIFICATE-----
