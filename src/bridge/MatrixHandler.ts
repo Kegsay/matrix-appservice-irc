@@ -55,6 +55,8 @@ export interface MatrixHandlerConfig {
     shortReplyTemplate: string;
     // Format of replies sent a while after the original message
     longReplyTemplate: string;
+    // format of replies where the sender of the original message is the same as the sender of the reply
+    selfReplyTemplate: string;
     // Format of the text explaining why a message is truncated and pastebinned
     truncatedMessageTemplate: string;
     // Ignore io.element.functional_members members joining admin rooms.
@@ -67,7 +69,8 @@ export const DEFAULTS: MatrixHandlerConfig = {
     replySourceMaxLength: 32,
     shortReplyTresholdSeconds: 5 * 60,
     shortReplyTemplate: "$NICK: $REPLY",
-    longReplyTemplate: "<$NICK> \"$ORIGINAL\" <- $REPLY",
+    longReplyTemplate: "$NICK: \"$ORIGINAL\" <- $REPLY",
+    selfReplyTemplate: "<$NICK> $ORIGINAL\n$REPLY",
     truncatedMessageTemplate: "(full message at <$URL>)",
     ignoreFunctionalMembersInAdminRooms: false,
 };
@@ -652,7 +655,7 @@ export class MatrixHandler {
 
     private async _onKick(req: BridgeRequest, event: MatrixEventKick, kicker: MatrixUser, kickee: MatrixUser) {
         req.log.info(
-            "onKick %s is kicking/banning %s from %s (reason: %s)",
+            "onKick %s is kicking %s from %s (reason: %s)",
             kicker.getId(), kickee.getId(), event.room_id, event.content.reason || "none"
         );
         this._onMemberEvent(req, event);
@@ -741,7 +744,81 @@ export class MatrixHandler {
                 // If we aren't joined this will no-op.
                 await client.leaveChannel(
                     ircRoom.channel,
-                    `Kicked by ${kicker.getId()} ` +
+                    `Kicked by ${kicker.getId()}` +
+                    (event.content.reason ? ` : ${event.content.reason}` : "")
+                );
+            })));
+        }
+    }
+
+    private async _onBan(req: BridgeRequest, event: MatrixEventKick, sender: MatrixUser, banned: MatrixUser) {
+        req.log.info(
+            "onBan %s is banning %s from %s (reason: %s)",
+            sender.getId(), banned.getId(), event.room_id, event.content.reason || "none"
+        );
+        this._onMemberEvent(req, event);
+
+        const ircRooms = await this.ircBridge.getStore().getIrcChannelsForRoomId(event.room_id);
+        // do we have an active connection for the banned? This tells us if they are real
+        // or virtual.
+        const bannedClients = this.ircBridge.getBridgedClientsForUserId(banned.getId());
+
+        if (bannedClients.length === 0) {
+            // Matrix on IRC banning, work out which IRC user to ban.
+            let server = null;
+            for (let i = 0; i < ircRooms.length; i++) {
+                if (ircRooms[i].server.claimsUserId(banned.getId())) {
+                    server = ircRooms[i].server;
+                    break;
+                }
+            }
+            if (!server) {
+                return; // kicking a bogus user
+            }
+            const bannedNick = server.getNickFromUserId(banned.getId());
+            if (!bannedNick) {
+                return; // bogus virtual user ID
+            }
+            // work out which client will do the kicking
+            const senderClient = this.ircBridge.getIrcUserFromCache(server, sender.getId());
+            if (!senderClient) {
+                // well this is awkward.. whine about it and bail.
+                req.log.warn(
+                    "%s has no client instance to send kick from. Cannot kick.",
+                    sender.getId()
+                );
+                return;
+            }
+            // we may be bridging this matrix room into many different IRC channels, and we want
+            // to kick this user from all of them.
+            for (let i = 0; i < ircRooms.length; i++) {
+                if (ircRooms[i].server.domain !== server.domain) {
+                    return;
+                }
+                senderClient.ban(bannedNick, ircRooms[i].channel);
+                senderClient.kick(
+                    bannedNick, ircRooms[i].channel,
+                    `Banned by ${sender.getId()}` +
+                    (event.content.reason ? ` : ${event.content.reason}` : "")
+                );
+            }
+        }
+        else {
+            // Matrix on Matrix banning: part the channel.
+            const bannedServerLookup: {[serverDomain: string]: BridgedClient} = {};
+            bannedClients.forEach((ircClient) => {
+                bannedServerLookup[ircClient.server.domain] = ircClient;
+            });
+            await Promise.all(ircRooms.map((async (ircRoom) => {
+                // Make the connected IRC client leave the channel.
+                const client = bannedServerLookup[ircRoom.server.domain];
+                if (!client) {
+                    return; // not connected to this server
+                }
+                // If we aren't joined this will no-op.
+                await client.leaveChannel(
+                    ircRoom.channel,
+                    `Banned by ${sender.getId()}` +
                     (event.content.reason ? ` : ${event.content.reason}` : "")
                 );
             })));
@@ -1175,10 +1252,9 @@ export class MatrixHandler {
             // we check event.content.body since ircAction already has the markers stripped
             const codeBlockMatch = event.content.body.match(/^```(\w+)?/);
             if (codeBlockMatch) {
-                const type = codeBlockMatch[1] ? ` ${codeBlockMatch[1]}` : '';
                 event.content = {
-                    msgtype: "m.emote",
-                    body:    `sent a${type} code block: ${httpUrl}`
+                    ...event.content,
+                    body:    `${httpUrl}`
                 };
             }
             else {
@@ -1209,7 +1285,7 @@ export class MatrixHandler {
             // Modify the event to become a truncated version of the original
             //  the truncation limits the number of lines sent to lineLimit.
 
-            const msg = '\n...(truncated)';
+            const msg = '\n(truncated)';
 
             const sendingEvent: MatrixMessageEvent = { ...event,
                 content: {
@@ -1299,7 +1375,7 @@ export class MatrixHandler {
         const bridgeIntent = this.ircBridge.getAppServiceBridge().getIntent();
         // strips out the quotation of the original message, if needed
         const replyText = (body: string): string => {
-            const REPLY_REGEX = /> <(.*?)>(.*?)\n\n([\s\S]*)/;
+            const REPLY_REGEX = /> <(.*?)>(.*?)\n\n([\s\S]*)/s;
             const match = REPLY_REGEX.exec(body);
             if (match === null || match.length !== 4) {
                 return body;
@@ -1394,7 +1470,11 @@ export class MatrixHandler {
 
         let replyTemplate: string;
         const thresholdMs = (this.config.shortReplyTresholdSeconds) * 1000;
-        if (rplSource && event.origin_server_ts - cachedEvent.timestamp > thresholdMs) {
+        if (cachedEvent.sender === event.sender) {
+            // They're replying to their own message.
+            replyTemplate = this.config.selfReplyTemplate;
+        }
+        else if (rplSource && event.origin_server_ts - cachedEvent.timestamp > thresholdMs) {
             replyTemplate = this.config.longReplyTemplate;
         }
         else {
@@ -1464,6 +1544,10 @@ export class MatrixHandler {
 
     public onKick(req: BridgeRequest, event: MatrixEventKick, kicker: MatrixUser, kickee: MatrixUser) {
         return reqHandler(req, this._onKick(req, event, kicker, kickee));
+    }
+
+    public onBan(req: BridgeRequest, event: MatrixEventKick, sender: MatrixUser, banned: MatrixUser) {
+        return reqHandler(req, this._onBan(req, event, sender, banned));
     }
 
     public onMessage(req: BridgeRequest, event: MatrixMessageEvent) {

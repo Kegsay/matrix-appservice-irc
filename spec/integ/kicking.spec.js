@@ -176,6 +176,118 @@ describe("Kicking", () => {
 });
 
 
+describe("Banning", () => {
+
+    const {env, config, test} = envBundle();
+
+    const mxUser = {
+        id: "@flibble:wibble",
+        nick: "M-flibble"
+    };
+
+    const ircUser = {
+        nick: "bob",
+        localpart: config._server + "_bob",
+        id: `@${config._server}_bob:${config.homeserver.domain}`
+    };
+
+    const ircUserKicker = {
+        nick: "KickerNick",
+        localpart: config._server + "_KickerNick",
+        id: "@" + config._server + "_KickerNick:" + config.homeserver.domain
+    };
+
+    beforeEach(async () => {
+        await test.beforeEach(env);
+
+        // accept connection requests from eeeeeeeeveryone!
+        env.ircMock._autoConnectNetworks(
+            config._server, mxUser.nick, config._server
+        );
+        env.ircMock._autoConnectNetworks(
+            config._server, ircUser.nick, config._server
+        );
+        env.ircMock._autoConnectNetworks(
+            config._server, config._botnick, config._server
+        );
+        // accept join requests from eeeeeeeeveryone!
+        env.ircMock._autoJoinChannels(
+            config._server, mxUser.nick, config._chan
+        );
+        env.ircMock._autoJoinChannels(
+            config._server, ircUser.nick, config._chan
+        );
+        env.ircMock._autoJoinChannels(
+            config._server, config._botnick, config._chan
+        );
+
+        // we also don't care about registration requests for the irc user
+        env.clientMock._intent(ircUser.id)._onHttpRegister({
+            expectLocalpart: ircUser.localpart,
+            returnUserId: ircUser.id
+        });
+
+        await test.initEnv(env);
+
+        // make the matrix user be on IRC
+        await env.mockAppService._trigger("type:m.room.message", {
+            content: {
+                body: "let me in",
+                msgtype: "m.text"
+            },
+            user_id: mxUser.id,
+            room_id: config._roomid,
+            type: "m.room.message"
+        });
+        const botIrcClient = await env.ircMock._findClientAsync(config._server, config._botnick);
+        // make the IRC user be on Matrix
+        botIrcClient.emit("message", ircUser.nick, config._chan, "let me in");
+    });
+
+    afterEach(async () => test.afterEach(env));
+
+    describe("IRC users on Matrix", () => {
+        it("should make the virtual IRC client set MODE +b and KICK the real IRC user", async () => {
+            let reason = "Get some help.";
+            let userBannedPromise = new Promise(function(resolve, reject) {
+                env.ircMock._whenClient(config._server, mxUser.nick, "send",
+                function(client, cmd, chan, arg1, arg2) {
+                    expect(client.nick).toEqual(mxUser.nick);
+                    expect(client.addr).toEqual(config._server);
+                    expect(chan).toEqual(config._chan);
+                    if (cmd !== "KICK") {
+                        // We sent a MODE
+                        expect(cmd).toEqual("MODE");
+                        expect(arg1).toEqual("+b"); // mode +b => ban
+                        expect(arg2).toEqual(`${ircUser.nick}!*@*`); // argument to +b
+                    }
+                    else {
+                        expect(cmd).toEqual("KICK");
+                        expect(arg1).toEqual(ircUser.nick); // nick
+                        expect(arg2.indexOf(reason)).not.toEqual(-1, // kick reason
+                            `kick reason was not mirrored to IRC. Got '${arg2}',
+                            expected '${reason}'.`);
+                    }
+                    resolve();
+                });
+            });
+
+            await env.mockAppService._trigger("type:m.room.member", {
+                content: {
+                    reason: reason,
+                    membership: "ban"
+                },
+                user_id: mxUser.id,
+                state_key: ircUser.id,
+                room_id: config._roomid,
+                type: "m.room.member"
+            });
+            await userBannedPromise;
+        });
+    });
+});
+
+
 describe("Kicking on IRC join", () => {
     const {env, config, test} = envBundle();
 
