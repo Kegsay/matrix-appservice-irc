@@ -4677,10 +4677,10 @@ makeerror@1.0.12:
   dependencies:
     tmpl "1.0.5"
 
-matrix-appservice-bridge@^10.2.0:
-  version "10.2.0"
-  resolved "https://registry.yarnpkg.com/matrix-appservice-bridge/-/matrix-appservice-bridge-10.2.0.tgz#79b6f53593ab21cf6211a3ba1051a0439b2f2824"
-  integrity sha512-GYpIBPgQnc0/p93KoqzrOYwh6JJEWZc+t9N0GxMO7EXb0IEkfKMji6lOOEqk9QdNs2+fpMBKIS2mjT3X5iuTUg==
+matrix-appservice-bridge@^10.2.1:
+  version "10.2.1"
+  resolved "https://registry.yarnpkg.com/matrix-appservice-bridge/-/matrix-appservice-bridge-10.2.1.tgz#d4dcc4b4c71926eda17318c29d557a8a20a35bd7"
+  integrity sha512-PDoVrIIE86FBtXS4Cz/8AmO+niOYUUp3ciUbexAxuu5v+G9+F4urR6Q0awPbF/sIn7cVONZNYcHAywt4ec0/Ow==
   dependencies:
     "@alloc/quick-lru" "^5.2.0"
     "@types/nedb" "^1.8.16"
