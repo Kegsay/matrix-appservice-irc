@@ -1,0 +1,1 @@
+Make sure mediaproxy gracefully handles errors and uses authenticated endpoints.
