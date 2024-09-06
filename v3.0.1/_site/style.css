@@ -1,0 +1,27 @@
+.notice {
+    color: black;
+    border: 2px solid #0098d4;
+    border-left-width: 2px;
+    border-left-width: 5px;
+    background: #e5f5fb;
+    padding: 10px 20px;
+}
+
+.notice::before {
+    content: "INFO: ";
+    font-weight: 700;
+}
+
+.warning {
+    color: black;
+    border: 2px solid #dda02f;
+    border-left-width: 2px;
+    border-left-width: 5px;
+    background: #fdcd74;
+    padding: 10px 20px;
+}
+
+.warning::before {
+    content: "WARNING: ";
+    font-weight: 700;
+}
