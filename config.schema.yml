@@ -91,6 +91,8 @@ properties:
                         type: "boolean"
                     port:
                         type: "integer"
+                    host:
+                        type: "string"
                 required: ["enabled", "port"]
             logging:
                 type: "object"

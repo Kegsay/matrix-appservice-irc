@@ -35,6 +35,7 @@ export class DebugApi {
     constructor(
         private ircBridge: IrcBridge,
         private port: number,
+        private host: string,
         private servers: IrcServer[],
         private pool: ClientPool,
         private token: string) {
@@ -54,7 +55,7 @@ export class DebugApi {
                 }
                 log.error(err.stack);
             }
-        }).listen(this.port);
+        }).listen(this.port, this.host);
     }
 
     private onRequest(req: IncomingMessage, response: ServerResponse) {

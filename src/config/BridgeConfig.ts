@@ -34,6 +34,7 @@ export interface BridgeConfig {
         debugApi: {
             enabled: boolean;
             port: number;
+            host: string;
         };
         /** @deprecated Use `BridgeConfig.database` */
         databaseUri?: string;

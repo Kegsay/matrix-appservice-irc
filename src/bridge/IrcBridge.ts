@@ -721,6 +721,7 @@ export class IrcBridge {
             this.debugApi = new DebugApi(
                 this,
                 this.config.ircService.debugApi.port,
+                this.config.ircService.debugApi.host,
                 this.ircServers,
                 this.clientPool,
                 this.registration.getAppServiceToken() as string

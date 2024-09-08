@@ -501,6 +501,8 @@ ircService:
     enabled: false
     # The port to host the HTTP API.
     port: 11100
+    # The host address to bind the HTTP API to.
+    host: "0.0.0.0"
 
   # Configuration for the provisioning API.
   # This key CANNOT be hot-reloaded
