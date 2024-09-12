@@ -1176,7 +1176,6 @@ export class MatrixHandler {
             // we check event.content.body since ircAction already has the markers stripped
             const codeBlockMatch = event.content.body.match(/^```(\w+)?/);
             if (codeBlockMatch) {
-                const type = codeBlockMatch[1] ? ` ${codeBlockMatch[1]}` : '';
                 event.content = {
                     ...event.content,
                     body:    `${httpUrl}`

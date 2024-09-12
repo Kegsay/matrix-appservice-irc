@@ -298,7 +298,7 @@ describe("Matrix-to-IRC message bridging", function() {
                 expect(client.nick).toEqual(testUser.nick);
                 expect(client.addr).toEqual(roomMapping.server);
                 expect(channel).toEqual(roomMapping.channel);
-                expect(text).toEqual(`<${repliesUser.nick}> "This is the real message" <- Reply Text`);
+                expect(text).toEqual(`${repliesUser.nick}: "This is the real message" <- Reply Text`);
             }
         );
         const formatted_body = constructHTMLReply(
@@ -389,7 +389,7 @@ describe("Matrix-to-IRC message bridging", function() {
                 expect(client.nick).toEqual(testUser.nick);
                 expect(client.addr).toEqual(roomMapping.server);
                 expect(channel).toEqual(roomMapping.channel);
-                expect(text).toEqual(`<${repliesUser.nick}> "This..." <- Reply Text`);
+                expect(text).toEqual(`${repliesUser.nick}: "This..." <- Reply Text`);
             }
         );
         const formatted_body = constructHTMLReply(
@@ -499,7 +499,7 @@ describe("Matrix-to-IRC message bridging", function() {
                 expect(client.nick).toEqual(testUser.nick);
                 expect(client.addr).toEqual(roomMapping.server);
                 expect(channel).toEqual(roomMapping.channel);
-                expect(text).toEqual('<M-friend> "Message #2" <- Message #3');
+                expect(text).toEqual('M-friend: "Message #2" <- Message #3');
             }
         );
 
@@ -650,7 +650,7 @@ describe("Matrix-to-IRC message bridging", function() {
         });
     });
 
-    it("should bridge mutliline code blocks as IRC action with URL", function(done) {
+    it("should bridge mutliline code blocks as a URL", function(done) {
         let tBody =
             "```javascript\n" +
             "    expect(text.indexOf(\"javascript\")).not.toEqual(-1);\n" +
@@ -662,13 +662,12 @@ describe("Matrix-to-IRC message bridging", function() {
         const sdk = env.clientMock._client(config._botUserId);
         sdk.uploadContent.and.returnValue(Promise.resolve("mxc://deadbeefcafe"));
 
-        env.ircMock._whenClient(roomMapping.server, testUser.nick, "action", (client, channel, text) => {
+        env.ircMock._whenClient(roomMapping.server, testUser.nick, "say", (client, channel, text) => {
                 expect(client.nick).toEqual(testUser.nick);
                 expect(client.addr).toEqual(roomMapping.server);
                 expect(channel).toEqual(roomMapping.channel);
                 // don't be too brittle when checking this, but I expect to see the
                 // code type and the media proxy url
-                expect(text.indexOf('javascript')).not.toEqual(-1);
                 expect(text.includes(config.ircService.mediaProxy.publicUrl)).toEqual(true);
                 done();
             });
@@ -713,11 +712,11 @@ describe("Matrix-to-IRC message bridging", function() {
         });
     });
 
-    it("should bridge matrix images as IRC action with a URL", function(done) {
+    it("should bridge matrix images as a URL", function(done) {
         const tBody = "the_image.jpg";
         const tMxcSegment = "/somecontentid";
 
-        env.ircMock._whenClient(roomMapping.server, testUser.nick, "action", (client, channel, text) => {
+        env.ircMock._whenClient(roomMapping.server, testUser.nick, "say", (client, channel, text) => {
             expect(client.nick).toEqual(testUser.nick);
             expect(client.addr).toEqual(roomMapping.server);
             expect(channel).toEqual(roomMapping.channel);
@@ -737,11 +736,11 @@ describe("Matrix-to-IRC message bridging", function() {
         });
     });
 
-    it("should bridge matrix files as IRC action with a URL", function(done) {
+    it("should bridge matrix files as a URL", function(done) {
         const tBody = "a_file.apk";
         const tMxcSegment = "/somecontentid";
 
-        env.ircMock._whenClient(roomMapping.server, testUser.nick, "action", (client, channel, text) => {
+        env.ircMock._whenClient(roomMapping.server, testUser.nick, "say", (client, channel, text) => {
             expect(client.nick).toEqual(testUser.nick);
             expect(client.addr).toEqual(roomMapping.server);
             expect(channel).toEqual(roomMapping.channel);
@@ -1074,11 +1073,11 @@ describe("Matrix-to-IRC message bridging with media URL and drop time", function
         expect(said).toBe(true);
     });
 
-    it("should bridge matrix files as IRC action with a configured media URL", function(done) {
+    it("should bridge matrix files as IRC message with a configured media URL", function(done) {
         let tBody = "a_file.apk";
         let tMxcSegment = "/somecontentid";
 
-        env.ircMock._whenClient(roomMapping.server, testUser.nick, "action",
+        env.ircMock._whenClient(roomMapping.server, testUser.nick, "say",
         function(client, channel, text) {
             expect(client.nick).toEqual(testUser.nick);
             expect(client.addr).toEqual(roomMapping.server);
