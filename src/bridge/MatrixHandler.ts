@@ -797,7 +797,7 @@ export class MatrixHandler {
                 // The user left the pm room, let's also leave.
                 const members = await this.ircBridge.getAppServiceBridge().getBot().getJoinedMembers(pmRoom.roomId);
                 await Promise.all(Object.keys(members).map((u) => {
-                    this.membershipQueue.leave(event.room_id, u, req);
+                    return this.membershipQueue.leave(event.room_id, u, req);
                 }));
                 return null;
             }
