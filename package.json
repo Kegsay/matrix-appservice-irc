@@ -1,6 +1,6 @@
 {
   "name": "matrix-appservice-irc",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "An IRC Bridge for Matrix",
   "main": "app.js",
   "bin": "./bin/matrix-appservice-irc",
@@ -41,7 +41,7 @@
     "he": "^1.2.0",
     "ioredis": "^5.3.1",
     "logform": "^2.4.2",
-    "matrix-appservice-bridge": "^10.2.1",
+    "matrix-appservice-bridge": "^10.2.2",
     "matrix-bot-sdk": "npm:@vector-im/matrix-bot-sdk@^0.7.0-element.1",
     "matrix-org-irc": "^3.0.0",
     "nopt": "^7.2.0",
