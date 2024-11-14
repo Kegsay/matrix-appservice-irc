@@ -10,6 +10,7 @@ import { getLogger } from "../logging";
 const log = getLogger("MatrixBanSync");
 export interface MatrixBanSyncConfig {
     rooms: string[];
+    serverBanLists?: { [ircServer: string]: string };
 }
 
 enum BanEntityType {
@@ -53,22 +54,57 @@ const supportedRecommendations = [
 export class MatrixBanSync {
     private bannedEntites = new Map<string, BanEntity>();
     private subscribedRooms = new Set<string>();
-    constructor(private config: MatrixBanSyncConfig) { }
+    private ircServerBanRooms = new Map<string, string>();
+    constructor(private intent: Intent, private config: MatrixBanSyncConfig) { }
 
-    public async syncRules(intent: Intent) {
+    public async markUserAsBanned(ircServer: string, mxid: string, reason = "k-lined"): Promise<void> {
+        this.bannedEntites.set(mxid, {
+            matcher: new MatrixGlob(mxid),
+            entityType: BanEntityType.User,
+            reason: reason,
+        });
+
+        const roomId = this.ircServerBanRooms.get(ircServer);
+        if (!roomId) {
+            log.warn(`No serverBanList configured for ${ircServer}; Matrix policy will not be created for ${mxid}`);
+            return;
+        }
+
+        await this.intent.sendStateEvent(roomId, 'm.policy.rule.user', `rule:${mxid}`, {
+            "entity": mxid,
+            "reason": reason,
+            "recommendation": "m.ban"
+        });
+    }
+
+    public async syncRules() {
         this.bannedEntites.clear();
         this.subscribedRooms.clear();
         for (const roomIdOrAlias of this.config.rooms) {
             try {
-                const roomId = await intent.join(roomIdOrAlias);
+                const roomId = await this.intent.join(roomIdOrAlias);
                 this.subscribedRooms.add(roomId);
-                const roomState = await intent.roomState(roomId, false) as WeakStateEvent[];
+                const roomState = await this.intent.roomState(roomId, false) as WeakStateEvent[];
                 for (const evt of roomState) {
                     this.handleIncomingState(evt, roomId);
                 }
             }
             catch (ex) {
                 log.error(`Failed to read ban list from ${roomIdOrAlias}`, ex);
+            }
+        }
+        for (const [ircServer, roomIdOrAlias] of Object.entries(this.config.serverBanLists ?? {})) {
+            try {
+                const roomId = await this.intent.join(roomIdOrAlias);
+                this.subscribedRooms.add(roomId);
+                this.ircServerBanRooms.set(ircServer, roomId);
+                const roomState = await this.intent.roomState(roomId, false) as WeakStateEvent[];
+                for (const evt of roomState) {
+                    this.handleIncomingState(evt, roomId);
+                }
+            }
+            catch (ex) {
+                log.error(`Failed to sync rules for ${ircServer} in ${roomIdOrAlias}:`, ex);
             }
         }
     }
@@ -139,8 +175,9 @@ export class MatrixBanSync {
      * @param config The new config.
      * @param intent The bot user intent.
      */
-    public async updateConfig(config: MatrixBanSyncConfig, intent: Intent) {
+    // XXX not actually called, ever: hot reloading likely broken
+    public async updateConfig(config: MatrixBanSyncConfig) {
         this.config = config;
-        await this.syncRules(intent);
+        await this.syncRules();
     }
 }

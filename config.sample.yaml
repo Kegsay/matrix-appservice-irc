@@ -668,6 +668,10 @@ ircService:
     # to identify banned users, rooms and servers.
     rooms:
       - "#matrix-org-coc-bl:matrix.org"
+    # Optional: Rooms to sync K-lined users to
+    serverBanLists:
+      # Keys are domains matching entries in ircService.servers
+      irc.example.com: "#exampleircd:matrix.org"
 
 # Options here are generally only applicable to large-scale bridges and may have
 # consequences greater than other options in this configuration file.

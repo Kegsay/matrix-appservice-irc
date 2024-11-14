@@ -90,7 +90,7 @@ export class IrcBridge {
     public readonly publicitySyncer: PublicitySyncer;
     public activityTracker: ActivityTracker|null = null;
     public readonly roomConfigs: RoomConfig;
-    public readonly matrixBanSyncer?: MatrixBanSync;
+    public matrixBanSyncer?: MatrixBanSync;
     private _mediaProxy?: MediaProxy;
     private clientPool!: ClientPool; // This gets defined in the `run` function
     private ircServers: IrcServer[] = [];
@@ -212,7 +212,6 @@ export class IrcBridge {
             maxActionDelayMs: 5 * 60 * 1000, // 5 mins,
             defaultTtlMs: 10 * 60 * 1000, // 10 mins
         });
-        this.matrixBanSyncer = this.config.ircService.banLists && new MatrixBanSync(this.config.ircService.banLists);
         this.matrixHandler = new MatrixHandler(this, this.config.ircService.matrixHandler, this.membershipQueue);
         this.privacyProtection = new PrivacyProtection(this);
         this.ircHandler = new IrcHandler(
@@ -289,7 +288,7 @@ export class IrcBridge {
             this.config.ircService.logging = newConfig.ircService.logging;
         }
 
-        const banSyncPromise = this.matrixBanSyncer?.syncRules(this.bridge.getIntent());
+        const banSyncPromise = this.matrixBanSyncer?.syncRules();
 
         await this.dataStore.removeConfigMappings();
 
@@ -635,7 +634,8 @@ export class IrcBridge {
         }
 
         await this.bridge.initialise();
-        await this.matrixBanSyncer?.syncRules(this.bridge.getIntent());
+        this.matrixBanSyncer = this.config.ircService.banLists && new MatrixBanSync(this.bridge.getIntent(), this.config.ircService.banLists);
+        await this.matrixBanSyncer?.syncRules();
         this.matrixHandler.initialise();
 
         this.activityTracker = new ActivityTracker(this.bridge.getIntent().matrixClient, {

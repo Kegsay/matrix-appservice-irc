@@ -288,6 +288,11 @@ export class ClientPool {
                 // Remove client if we failed to connect!
                 this.removeBridgedClient(bridgedClient);
             }
+            if (err instanceof IRCConnectionError && err.code === IRCConnectionErrorCode.Banned) {
+                void this.ircBridge.matrixBanSyncer?.markUserAsBanned(server.domain, userId).catch((err: any) => {
+                    log.error(`Failed to mark ${userId} as banned: ${err.toString}`);
+                });
+            }
             // If we failed to connect
             log.error("Couldn't connect virtual user %s (%s) to %s : %s",
                 ircClientConfig.getDesiredNick(), userId, server.domain, JSON.stringify(err));
@@ -676,6 +681,9 @@ export class ClientPool {
         }
 
         if (disconnectReason === "banned" && userId) {
+            void this.ircBridge.matrixBanSyncer?.markUserAsBanned(bridgedClient.server.domain, userId).catch((err: any) => {
+                log.error(`Failed to mark ${userId} as banned: ${err.toString}`);
+            });
             const req = new BridgeRequest(this.ircBridge.getAppServiceBridge().getRequestFactory().newRequest());
             this.ircBridge.matrixHandler.quitUser(
                 req, userId, [bridgedClient],
