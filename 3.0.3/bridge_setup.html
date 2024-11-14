@@ -1,0 +1,297 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Setting up the bridge - Matrix IRC Bridge</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="docs/_site/style.css">
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="usage.html"><strong aria-hidden="true">2.</strong> Usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="admin_room.html"><strong aria-hidden="true">2.1.</strong> Admin Room</a></li><li class="chapter-item expanded "><a href="room_commands.html"><strong aria-hidden="true">2.2.</strong> Room Commands</a></li><li class="chapter-item expanded "><a href="room_configuration.html"><strong aria-hidden="true">2.3.</strong> Room Configuration</a></li><li class="chapter-item expanded "><a href="irc_modes.html"><strong aria-hidden="true">2.4.</strong> IRC Modes</a></li><li class="chapter-item expanded "><a href="setup_widget.html"><strong aria-hidden="true">2.5.</strong> Setup Widget</a></li></ol></li><li class="chapter-item expanded "><a href="bridged_networks.html"><strong aria-hidden="true">3.</strong> Bridged Networks</a></li><li class="chapter-item expanded "><a href="administrators_guide.html"><strong aria-hidden="true">4.</strong> Bridge Administrators</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="bridge_setup.html" class="active"><strong aria-hidden="true">4.1.</strong> Setting up the bridge</a></li><li class="chapter-item expanded "><a href="debug_api.html"><strong aria-hidden="true">4.2.</strong> Debug API</a></li><li class="chapter-item expanded "><a href="connection_pooling.html"><strong aria-hidden="true">4.3.</strong> Connection Pooling</a></li></ol></li><li class="chapter-item expanded "><a href="irc_operators.html"><strong aria-hidden="true">5.</strong> IRC Operators</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Matrix IRC Bridge</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/matrix-org/matrix-appservice-irc" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/matrix-org/matrix-appservice-irc/edit/develop/docs/bridge_setup.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="bridge-setup"><a class="header" href="#bridge-setup">Bridge Setup</a></h1>
+<p>This guide is written for server administrators who would like to set up their own IRC bridge to one or more networks.</p>
+<h2 id="before-setting-up"><a class="header" href="#before-setting-up">Before setting up</a></h2>
+<p>We recommend using Node.js <code>v16</code> or greater when setting up the bridge, as we use <code>worker_threads</code> to handle
+some of the traffic for larger bridges.</p>
+<p>Versions older than Node 16 are no longer supported.</p>
+<p>You should also ensure you have a recent Matrix homeserver that you have permission to bridge to. This can
+either be your own, or one that you have the ability to setup Application Services with.</p>
+<p>Finally <strong>you should seek permission from the operator of the bridged IRC network before running this bridge.</strong>
+<strong>Bridging may be against the IRC network's Terms of Use.</strong>. Failure to do so may get your bridge banned and
+your IP address blocked by the IRC network. Most networks will only allow a limited number of IRC connections
+from a single IP, so you should ask them for permission before bridging.</p>
+<h2 id="1-installation"><a class="header" href="#1-installation">1. Installation</a></h2>
+<h3 id="install-from-git-preferred"><a class="header" href="#install-from-git-preferred">Install from git (preferred)</a></h3>
+<pre><code class="language-sh">git clone https://github.com/matrix-org/matrix-appservice-irc.git
+cd matrix-appservice-irc
+git checkout master # or 0.x.x to pin to a version
+yarn
+</code></pre>
+<p>The bridge can now be started by: <code>node app.js</code>.</p>
+<h3 id="global-install"><a class="header" href="#global-install">Global Install</a></h3>
+<pre><code class="language-sh"># --global requires super user on most systems
+$ yarn install --global matrix-appservice-irc 
+</code></pre>
+<h3 id="docker"><a class="header" href="#docker">Docker</a></h3>
+<p>The bridge has a <a href="https://hub.docker.com/r/matrixdotorg/matrix-appservice-irc">Docker image</a>.</p>
+<h2 id="2-configuration"><a class="header" href="#2-configuration">2. Configuration</a></h2>
+<p>The bridge must be configured before it can be run. This tells the bridge where to find the homeserver
+and how to bridge IRC channels/users.</p>
+<ul>
+<li>Copy <code>config.sample.yaml</code> to <code>config.yaml</code>.
+<ul>
+<li>For Docker, you will want to make a directory called <code>data</code> and store the <code>config.yaml</code> inside.</li>
+</ul>
+</li>
+<li>Modify <code>config.yaml</code> to point to your homeserver and IRC network of choice.</li>
+</ul>
+<p>The sample config has detailed information about each option. Please read them carefully.</p>
+<h2 id="3-database"><a class="header" href="#3-database">3. Database</a></h2>
+<p>The bridge comes with support for either PostgreSQL or NEDB. PostgreSQL is preferred as it is faster,
+easier to handle than flat files and allows you to inspect the state of it while the bridge is running.</p>
+<p>Setting up PostgresSQL for the bridge is as easy as doing:</p>
+<pre><code class="language-postgres">-- Authenticate with postgres, then
+psql 'postgres://dbstring'
+CREATE DATABASE ircbridge;
+CREATE USER ircbridge WITH PASSWORD 's3cr3t';
+GRANT ALL ON DATABASE ircbridge TO ircbridge;
+-- Then modify your config.yaml to include the database connection string.
+</code></pre>
+<h2 id="4-registration"><a class="header" href="#4-registration">4. Registration</a></h2>
+<p>The bridge needs to generate a registration file which can be passed to the homeserver to tell the
+homeserver which Matrix events the bridge should receive.</p>
+<p>Execute the following command:</p>
+<pre><code>node app.js -r -f appservice-registration-irc.yaml -u &quot;http://localhost:8090&quot; -c config.yaml -l my_bot
+</code></pre>
+<p>Change <code>-u &quot;http://localhost:8090&quot;</code> to wherever your Matrix server can contact this IRC bridge.
+By changing the option <code>-l my_bot</code> you can modify the localpart of the bridge bot user. It contacts
+Matrix users of your bridge to control their usage of the bridge (e.g. to change their nickname).</p>
+<p>You should get something like:</p>
+<pre><code>id: irc
+hs_token: 82c7a893d020b5f28eaf7ba31e1d1091b12ebafc5ceb1b6beac2b93defc1b301
+as_token: a66ae41f82b05bebfc9c259135ce1ce35c856000d542ab5d1f01e0212439d534
+namespaces:
+  users:
+    - exclusive: true
+      regex: '@irc_.*:yourhomeserverdomain'
+  aliases:
+    - exclusive: true
+      regex: '#irc_.*:yourhomeserverdomain'
+url: 'http://localhost:8090'
+sender_localpart: appservice-irc
+rate_limited: false
+protocols:
+  - irc
+</code></pre>
+<p>For Docker, copy the above to <code>data/appservice-registration-irc.yaml</code> and replace as necessary.</p>
+<p><em>More information on the CLI args can be found by running</em> <code>$ node app.js --help</code>.</p>
+<p>This will create a registration YAML file. Edit your <strong>homeserver</strong> config file (e.g. <code>homeserver.yaml</code>) to
+point to this registration file:</p>
+<pre><code class="language-yaml"># homeserver.yaml
+app_service_config_files: [&quot;appservice-registration-irc.yaml&quot;]
+</code></pre>
+<h2 id="5-running"><a class="header" href="#5-running">5. Running</a></h2>
+<p>Finally, the bridge can be run using the following command:</p>
+<pre><code>$ node app.js -c config.yaml -f appservice-registration-irc.yaml -p 8090
+</code></pre>
+<p>Or for Docker:</p>
+<pre><code># Remember to expose ports for metrics, debug API if you need to.
+docker run --volume $PWD/data:/data --publish 8090 matrixdotorg/matrix-appservice-irc
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="administrators_guide.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="debug_api.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="administrators_guide.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="debug_api.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="docs/_site/main.js"></script>
+        <script src="docs/_site/version.js"></script>
+
+
+    </div>
+    </body>
+</html>
