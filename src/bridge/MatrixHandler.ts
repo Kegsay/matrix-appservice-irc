@@ -55,6 +55,8 @@ export interface MatrixHandlerConfig {
     shortReplyTemplate: string;
     // Format of replies sent a while after the original message
     longReplyTemplate: string;
+    // format of replies where the sender of the original message is the same as the sender of the reply
+    selfReplyTemplate: string;
     // Format of the text explaining why a message is truncated and pastebinned
     truncatedMessageTemplate: string;
     // Ignore io.element.functional_members members joining admin rooms.
@@ -67,7 +69,8 @@ export const DEFAULTS: MatrixHandlerConfig = {
     replySourceMaxLength: 32,
     shortReplyTresholdSeconds: 5 * 60,
     shortReplyTemplate: "$NICK: $REPLY",
-    longReplyTemplate: "<$NICK> \"$ORIGINAL\" <- $REPLY",
+    longReplyTemplate: "$NICK: \"$ORIGINAL\" <- $REPLY",
+    selfReplyTemplate: "<$NICK> $ORIGINAL\n$REPLY",
     truncatedMessageTemplate: "(full message at <$URL>)",
     ignoreFunctionalMembersInAdminRooms: false,
 };
@@ -1173,10 +1176,9 @@ export class MatrixHandler {
             // we check event.content.body since ircAction already has the markers stripped
             const codeBlockMatch = event.content.body.match(/^```(\w+)?/);
             if (codeBlockMatch) {
-                const type = codeBlockMatch[1] ? ` ${codeBlockMatch[1]}` : '';
                 event.content = {
-                    msgtype: "m.emote",
-                    body:    `sent a${type} code block: ${httpUrl}`
+                    ...event.content,
+                    body:    `${httpUrl}`
                 };
             }
             else {
@@ -1207,7 +1209,7 @@ export class MatrixHandler {
             // Modify the event to become a truncated version of the original
             //  the truncation limits the number of lines sent to lineLimit.
 
-            const msg = '\n...(truncated)';
+            const msg = '\n(truncated)';
 
             const sendingEvent: MatrixMessageEvent = { ...event,
                 content: {
@@ -1297,7 +1299,7 @@ export class MatrixHandler {
         const bridgeIntent = this.ircBridge.getAppServiceBridge().getIntent();
         // strips out the quotation of the original message, if needed
         const replyText = (body: string): string => {
-            const REPLY_REGEX = /> <(.*?)>(.*?)\n\n([\s\S]*)/;
+            const REPLY_REGEX = /> <(.*?)>(.*?)\n\n([\s\S]*)/s;
             const match = REPLY_REGEX.exec(body);
             if (match === null || match.length !== 4) {
                 return body;
@@ -1392,7 +1394,11 @@ export class MatrixHandler {
 
         let replyTemplate: string;
         const thresholdMs = (this.config.shortReplyTresholdSeconds) * 1000;
-        if (rplSource && event.origin_server_ts - cachedEvent.timestamp > thresholdMs) {
+        if (cachedEvent.sender === event.sender) {
+            // They're replying to their own message.
+            replyTemplate = this.config.selfReplyTemplate;
+        }
+        else if (rplSource && event.origin_server_ts - cachedEvent.timestamp > thresholdMs) {
             replyTemplate = this.config.longReplyTemplate;
         }
         else {
