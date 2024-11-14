@@ -1254,17 +1254,19 @@ export class IrcBridge {
             else if (event.content.membership === "join") {
                 await this.matrixHandler.onJoin(request, memberEvent as unknown as OnMemberEventData, target);
             }
-            else if (["ban", "leave"].includes(event.content.membership as string)) {
-                // Given a "self-kick" is a leave, and you can't ban yourself,
-                // if the 2 IDs are different then we know it is either a kick
-                // or a ban (or a rescinded invite)
-                const isKickOrBan = target.getId() !== sender.getId();
-                if (isKickOrBan) {
+            else if (event.content.membership === "leave") {
+                // Given a "self-kick" is a leave, if the 2 IDs are different then
+                // we know it is a kick (or a rescinded invite)
+                const isKick = target.getId() !== sender.getId();
+                if (isKick) {
                     await this.matrixHandler.onKick(request, memberEvent as unknown as MatrixEventKick, sender, target);
                 }
                 else {
                     await this.matrixHandler.onLeave(request, memberEvent, target);
                 }
+            }
+            else if (event.content.membership === "ban") {
+                await this.matrixHandler.onBan(request, memberEvent as unknown as MatrixEventKick, sender, target);
             }
         }
         else if (event.type === "m.room.power_levels" && event.state_key === "") {

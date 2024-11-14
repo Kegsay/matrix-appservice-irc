@@ -510,6 +510,26 @@ export class BridgedClient extends EventEmitter {
         await c.send("KICK", channel, nick, reason);
     }
 
+    public async ban(nick: string, channel: string): Promise<void> {
+        if (this.state.status !== BridgedClientStatus.CONNECTED) {
+            return; // we were never connected to the network.
+        }
+        if (!this.state.client.chans.has(channel)) {
+            // we were never joined to it. We need to be joined to it to kick people.
+            return;
+        }
+        if (!channel.startsWith("#")) {
+            return; // PM room
+        }
+
+        const c = this.state.client;
+
+        this.log.debug("Banning %s from channel %s", nick, channel);
+
+        // best effort ban
+        await c.send("MODE", channel, "+b", nick + "!*@*");
+    }
+
     public sendAction(room: IrcRoom, action: IrcAction) {
         this.keepAlive();
         let expiryTs = 0;
