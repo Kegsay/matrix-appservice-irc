@@ -43,7 +43,7 @@ configuration options available.
 
 Documentation can be found on [GitHub Pages](https://matrix-org.github.io/matrix-appservice-irc).
 
-You can build the documentaion yourself by:
+You can build the documentation yourself by:
 ```
 # Ensure that Rust is installed on your system.
 # cargo install mdbook
