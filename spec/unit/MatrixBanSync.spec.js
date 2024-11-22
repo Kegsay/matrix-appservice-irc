@@ -35,8 +35,39 @@ const BANNED_SERVER_ENTITY = {
 
 describe("MatrixBanSync", () => {
     let banSync;
+    const intent = {
+        join: async (roomOrAlias) => {
+            if (roomOrAlias.includes('valid:room')) {
+                return roomOrAlias.replace('#', '!');
+            }
+            throw Error('Room not known');
+        },
+        roomState: async (roomId) => {
+            if (roomId === '!valid:room') {
+                return [
+                    {
+                        type: 'm.policy.rule.server',
+                        state_key: 'should-not-be-here',
+                        content: {
+                            recommendation: 'still-not-interested',
+                            entity: 'foo.com',
+                            reason: 'foo',
+                        }
+                    },
+                    BANNED_SERVER_STATE_EVENT,
+                ];
+            }
+            else if (roomId === '!anothervalid:room') {
+                return [
+                    {type: 'not-interested'},
+                    BANNED_USER_STATE_EVENT,
+                ];
+            }
+            throw Error('Unknown room');
+        },
+    };
     beforeEach(() => {
-        banSync = new MatrixBanSync({ rooms: [] });
+        banSync = new MatrixBanSync(intent, { rooms: [] });
         banSync.interestingRooms = new Set(["!valid:room"]);
     })
     describe("isUserBanned", () => {
@@ -106,38 +137,7 @@ describe("MatrixBanSync", () => {
     describe("syncRules", () => {
         it("should sync state from a set of rooms", async () => {
             banSync.config.rooms = ["!valid:room", "#anothervalid:room", "!notvalid:room"];
-            const intent = {
-                join: async (roomOrAlias) => {
-                    if (roomOrAlias.includes('valid:room')) {
-                        return roomOrAlias.replace('#', '!');
-                    }
-                    throw Error('Room not known');
-                },
-                roomState: async (roomId) => {
-                    if (roomId === '!valid:room') {
-                        return [
-                            {
-                                type: 'm.policy.rule.server',
-                                state_key: 'should-not-be-here',
-                                content: {
-                                    recommendation: 'still-not-interested',
-                                    entity: 'foo.com',
-                                    reason: 'foo',
-                                }
-                            },
-                            BANNED_SERVER_STATE_EVENT,
-                        ];
-                    }
-                    else if (roomId === '!anothervalid:room') {
-                        return [
-                            {type: 'not-interested'},
-                            BANNED_USER_STATE_EVENT,
-                        ];
-                    }
-                    throw Error('Unknown room');
-                },
-            }
-            await banSync.syncRules(intent);
+            await banSync.syncRules();
             expect(banSync.bannedEntites.size).toEqual(2);
             expect(
                 banSync.bannedEntites.get(`!valid:room:banned-server`)
