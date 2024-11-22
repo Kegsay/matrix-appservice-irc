@@ -634,7 +634,10 @@ export class IrcBridge {
         }
 
         await this.bridge.initialise();
-        this.matrixBanSyncer = this.config.ircService.banLists && new MatrixBanSync(this.bridge.getIntent(), this.config.ircService.banLists);
+        this.matrixBanSyncer = this.config.ircService.banLists && new MatrixBanSync(
+            this.bridge.getIntent(),
+            this.config.ircService.banLists,
+        );
         await this.matrixBanSyncer?.syncRules();
         this.matrixHandler.initialise();
 
