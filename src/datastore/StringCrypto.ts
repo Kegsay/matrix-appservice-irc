@@ -21,23 +21,28 @@ import { getLogger } from "../logging";
 const log = getLogger("CryptoStore");
 
 export class StringCrypto {
-    private privateKey!: string;
+    private secretKey!: crypto.KeyObject;
+    private privateKey!: crypto.KeyObject;
 
     public load(pkeyPath: string) {
         try {
-            this.privateKey = fs.readFileSync(pkeyPath, "utf8").toString();
+            const pk = fs.readFileSync(pkeyPath, "utf8").toString();
 
-            // Test whether key is a valid PEM key (publicEncrypt does internal validation)
             try {
-                crypto.publicEncrypt(
-                    this.privateKey,
-                    Buffer.from("This is a test!")
-                );
+                this.privateKey = crypto.createPrivateKey(pk);
             }
             catch (err) {
                 log.error(`Failed to validate private key: (${err.message})`);
                 throw err;
             }
+            // Derive AES key from private key hash
+            const hash = crypto.createHash('sha256');
+            // Re-export to have robustness against formatting/whitespace for same key
+            hash.update(this.privateKey.export({
+                type: 'pkcs1',
+                format: 'der'
+            }));
+            this.secretKey = crypto.createSecretKey(hash.digest());
 
             log.info(`Private key loaded from ${pkeyPath} - IRC password encryption enabled.`);
         }
@@ -48,19 +53,42 @@ export class StringCrypto {
     }
 
     public encrypt(plaintext: string): string {
-        const salt = crypto.randomBytes(16).toString('base64');
-        return crypto.publicEncrypt(
-            this.privateKey,
-            Buffer.from(salt + ' ' + plaintext)
-        ).toString('base64');
+        const iv = crypto.randomBytes(16);
+        const cipher = crypto.createCipheriv(
+            'aes-256-gcm',
+            this.secretKey,
+            iv,
+            {authTagLength: 16}
+        );
+        const encrypted = Buffer.concat([
+            cipher.update(plaintext),
+            cipher.final()
+        ]);
+        return [
+            cipher.getAuthTag(),
+            iv,
+            encrypted
+        ].map(x => x.toString('base64')).join('|');
     }
 
     public decrypt(encryptedString: string): string {
+        if (encryptedString.includes('|')) {
+            const [cipherTag, iv, encrypted] = encryptedString.split('|').map(x => Buffer.from(x, 'base64'))
+            const decipher = crypto.createDecipheriv(
+                'aes-256-gcm',
+                this.secretKey as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+                iv,
+                {authTagLength: 16}
+            );
+            decipher.setAuthTag(cipherTag);
+            return [decipher.update(encrypted), decipher.final()].join('')
+        }
+        log.debug('Could not decrypt string with derived secret key; falling back to asymmetric scheme');
         const decryptedPass = crypto.privateDecrypt(
             this.privateKey,
             Buffer.from(encryptedString, 'base64')
         ).toString();
-        // Extract the password by removing the prefixed salt and seperating space
+        // Extract the password by removing the prefixed salt and separating space
         return decryptedPass.split(' ')[1];
     }
 }
