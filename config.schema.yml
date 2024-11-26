@@ -390,7 +390,7 @@ properties:
                                     type: "string"
                                 aliasTemplate:
                                     type: "string"
-                                    pattern: "^(#.*\\$CHANNEL|\\$CHANNEL)$"
+                                    pattern: "^(#.*\\$CHANNEL.*|\\$CHANNEL)$"
                                 whitelist:
                                     type: "array"
                                     items:
@@ -452,7 +452,7 @@ properties:
                                     type: "boolean"
                                 realnameFormat:
                                     type: "string"
-                                    enum: ["mxid","reverse-mxid"]
+                                    pattern: "\\$USERID|\\$LOCALPART|\\$DISPLAY|\\$REVERSEID|\\$IRCUSER"
                                 ipv6:
                                     type: "object"
                                     properties:

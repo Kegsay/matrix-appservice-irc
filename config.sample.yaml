@@ -401,8 +401,11 @@ ircService:
         # through the bridge e.g. caller ID as there is no way to /ACCEPT.
         # Default: "" (no user modes)
         # userModes: "R"
-        # The format of the realname defined for users, either mxid or reverse-mxid
-        realnameFormat: "mxid"
+        # The format of the realname defined for users. This MUST have either
+        # $DISPLAY, $USERID, $LOCALPART, $REVERSEID or $IRCUSER somewhere in it.
+        # The template to apply to every IRC client nick. 
+        # Note that realnames longer than 48 characters will be trucated.
+        realnameFormat: "$USERID"
         # The minimum time to wait between connection attempts if we were disconnected
         # due to throttling.
         # pingTimeoutMs: 600000

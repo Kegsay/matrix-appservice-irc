@@ -65,13 +65,28 @@ describe("Username generation", function() {
         expect(info.username).toEqual(uname);
     });
 
-    it("should reverse the userID", async function() {
+    it("should reverse the userID according to legacy format", async function() {
         var userId = "@myreallylonguseridhere:localhost";
         const info = await identGenerator.getIrcNames(ircClientConfig, {
             getRealNameFormat: () => "reverse-mxid",
             getIpv6Only: () => false
         }, new MatrixUser(userId));
         expect(info.realname).toEqual("localhost:myreallylonguseridhere");
+    });
+
+    it("should allow template userID", async function() {
+        var userId = "@mxuser:localhost";
+        const user = new MatrixUser(userId);
+        user.setDisplayName('bar');
+        ircClientConfig.getUsername = () => 'foo';
+        let info = await identGenerator.getIrcNames(ircClientConfig, {
+            getRealNameFormat: () => "$USERID_$REVERSEID_suffix",
+        }, user);
+        expect(info.realname).toEqual("@mxuser:localhost_localhost:mxuser_suffix");
+        info = await identGenerator.getIrcNames(ircClientConfig, {
+            getRealNameFormat: () => "$IRCUSER_$DISPLAY_$LOCALPART_suffix",
+        }, user);
+        expect(info.realname).toEqual("foo_bar_mxuser_suffix");
     });
 
     it("should start with '_1' on an occupied user ID", async function() {

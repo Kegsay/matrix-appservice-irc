@@ -20,6 +20,7 @@ import { DataStore } from "../datastore/DataStore";
 import { MatrixUser } from "matrix-appservice-bridge";
 import { IrcClientConfig } from "../models/IrcClientConfig";
 import { IrcServer } from "./IrcServer";
+import { renderTemplate } from "../util/Template";
 
 const log = getLogger("IdentGenerator");
 
@@ -66,18 +67,29 @@ export class IdentGenerator {
 
         let realname: string;
         if (!matrixUser) {
-            realname = IdentGenerator.sanitiseRealname(username || "");
+            realname = username || "";
         }
         else if (server.getRealNameFormat() === "mxid") {
-            realname = IdentGenerator.sanitiseRealname(matrixUser.getId());
+            realname = matrixUser.getId();
+            log.warn("** The IrcClient.realnameFormat config schema has changed, allowing legacy format for now. **");
+            log.warn("See https://github.com/matrix-org/matrix-appservice-irc/blob/master/CHANGELOG.md for details");
         }
         else if (server.getRealNameFormat() === "reverse-mxid") {
-            realname = IdentGenerator.sanitiseRealname(IdentGenerator.switchAroundMxid(matrixUser));
+            realname = IdentGenerator.switchAroundMxid(matrixUser);
+            log.warn("** The IrcClient.realnameFormat config schema has changed, allowing legacy format for now. **");
+            log.warn("See https://github.com/matrix-org/matrix-appservice-irc/blob/master/CHANGELOG.md for details");
         }
         else {
-            throw Error('Invalid value for realNameFormat');
+            realname = renderTemplate(server.getRealNameFormat(), {
+                userId: matrixUser.userId,
+                localpart: matrixUser.localpart,
+                display: matrixUser.getDisplayName() || "",
+                reverseId: IdentGenerator.switchAroundMxid(matrixUser),
+                ircUser: username || ""
+            });
         }
 
+        realname = IdentGenerator.sanitiseRealname(realname);
         realname = realname.substring(0, IdentGenerator.MAX_REAL_NAME_LENGTH);
 
         if (matrixUser) {
