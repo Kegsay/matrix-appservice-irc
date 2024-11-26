@@ -308,6 +308,11 @@ ircService:
       # $NICK => The IRC nick
       # $SERVER => The IRC server address (e.g. "irc.example.com")
       matrixClients:
+        # Character mapping for matrix IDs localparts
+        # 0: No character mapping
+        # 1: Mapping according to 
+        #    https://spec.matrix.org/v1.8/appendices/#mapping-from-other-character-sets
+        localPartCharacterMapping: 0
         # The user ID template to use when creating virtual matrix users. This
         # MUST start with an @ and have $NICK somewhere in it.
         # Optional. Default: "@$SERVER_$NICK".

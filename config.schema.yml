@@ -425,6 +425,10 @@ properties:
                         matrixClients:
                             type: "object"
                             properties:
+                                localPartCharacterMapping:
+                                    type: "integer"
+                                    minimum: 0
+                                    maximum: 1
                                 userTemplate:
                                     type: "string"
                                     pattern: "^@.*\\$NICK"

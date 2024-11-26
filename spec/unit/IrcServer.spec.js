@@ -69,5 +69,89 @@ describe("IrcServer", function() {
             );
             expect(() => {server.getNick("@💩ケ:foobar")}).toThrow();
         });
+    })
+    describe("getUserLocalpart", function() {
+        it("does not touch valid characters", function() {
+            const server = new IrcServer("irc.foobar",
+                extend(true, IrcServer.DEFAULT_CONFIG, {
+                    matrixClients: {
+                        localPartCharacterMapping: 1,
+                    }
+                })
+            );
+            expect(server.getUserLocalpart("foobar09.-+")).toEqual("irc.foobar_foobar09.-+");
+        });
+        it("encodes capital letters", function() {
+            const server = new IrcServer("irc.foobar",
+                extend(true, IrcServer.DEFAULT_CONFIG, {
+                    matrixClients: {
+                        localPartCharacterMapping: 1,
+                    }
+                })
+            );
+            expect(server.getUserLocalpart("foOBaR_09.-+")).toEqual("irc.foobar_fo_o_ba_r__09.-+");
+        });
+        it("encodes invalid characters", function() {
+            const server = new IrcServer("irc.foobar",
+                extend(true, IrcServer.DEFAULT_CONFIG, {
+                    matrixClients: {
+                        localPartCharacterMapping: 1,
+                    }
+                })
+            );
+            expect(server.getUserLocalpart("foobar=[m]")).toEqual("irc.foobar_foobar=3d=5bm=5d");
+        });
+        it("encodes both capital letters and invalid chars", function() {
+            const server = new IrcServer("irc.foobar",
+                extend(true, IrcServer.DEFAULT_CONFIG, {
+                    matrixClients: {
+                        localPartCharacterMapping: 1,
+                    }
+                })
+            );
+            expect(server.getUserLocalpart("f_oObAr=[m]")).toEqual("irc.foobar_f__o_ob_ar=3d=5bm=5d");
+        });
+    });
+    describe("getNickFromUserId", function() {
+        it("does not touch valid characters", function() {
+            const server = new IrcServer("irc.foobar",
+                extend(true, IrcServer.DEFAULT_CONFIG, {
+                    matrixClients: {
+                        localPartCharacterMapping: 1,
+                    }
+                })
+            );
+            expect(server.getNickFromUserId("irc.foobar_foobar09.-+")).toEqual("foobar09.-+");
+        });
+        it("encodes capital letters", function() {
+            const server = new IrcServer("irc.foobar",
+                extend(true, IrcServer.DEFAULT_CONFIG, {
+                    matrixClients: {
+                        localPartCharacterMapping: 1,
+                    }
+                })
+            );
+            expect(server.getNickFromUserId("irc.foobar_fo_o_ba_r__09.-+")).toEqual("foOBaR_09.-+");
+        });
+        it("decodes invalid characters", function() {
+            const server = new IrcServer("irc.foobar",
+                extend(true, IrcServer.DEFAULT_CONFIG, {
+                    matrixClients: {
+                        localPartCharacterMapping: 1,
+                    }
+                })
+            );
+            expect(server.getNickFromUserId("irc.foobar_foobar=3d=5bm=5d")).toEqual("foobar=[m]");
+        });
+        it("encodes both capital letters and invalid chars", function() {
+            const server = new IrcServer("irc.foobar",
+                extend(true, IrcServer.DEFAULT_CONFIG, {
+                    matrixClients: {
+                        localPartCharacterMapping: 1,
+                    }
+                })
+            );
+            expect(server.getNickFromUserId("irc.foobar_f__o_ob_ar=3d=5bm=5d")).toEqual("f_oObAr=[m]");
+        });
     });
 });

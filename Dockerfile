@@ -10,6 +10,9 @@ RUN cd freebindfree && make
 # Typescript build
 FROM node:20 as builder
 
+RUN apt-get update && apt-get install -y node-gyp --no-install-recommends
+RUN rm -rf /var/lib/apt/lists/*
+
 WORKDIR /build
 
 COPY src/ /build/src/

@@ -78,6 +78,7 @@ export interface IrcServerConfig {
         federate: boolean;
     };
     matrixClients: {
+        localPartCharacterMapping: number,
         userTemplate: string;
         displayName: string;
         joinAttempts: number;
@@ -533,6 +534,14 @@ export class IrcServer {
     }
 
     public getUserLocalpart(nick: string): string {
+
+        if (this.config.matrixClients.localPartCharacterMapping == 1) {
+            // https://spec.matrix.org/v1.8/appendices/#mapping-from-other-character-sets
+            nick = nick.replaceAll(/[A-Z_]/g, (c) => "_" + c.toLowerCase());
+            nick = nick.replaceAll(/[^a-z0-9\.\_\-\/+]/g,
+                (c) => "=" + c.charCodeAt(0).toString(16).padStart(2, '0'));
+        }
+
         // the template is just a literal string with special vars; so find/replace
         // the vars and strip the @
         return renderTemplate(this.config.matrixClients.userTemplate, {
@@ -572,13 +581,20 @@ export class IrcServer {
         if (!match) {
             return null;
         }
-        return match[1];
+
+        let nick = match[1];
+        if (this.config.matrixClients.localPartCharacterMapping == 1) {
+            // https://spec.matrix.org/v1.8/appendices/#mapping-from-other-character-sets
+            nick = match[1].replaceAll(/=([0-9a-f][0-9a-f])/g,
+                (_m, g1) => String.fromCharCode(parseInt(g1, 16)));
+            nick = nick.replaceAll(/_([a-z_])/g, (m, g1) => g1.toUppercase());
+        }
+
+        return nick;
     }
 
     public getUserIdFromNick(nick: string): string {
-        const template = this.config.matrixClients.userTemplate;
-        return template.replace(/\$NICK/g, nick).replace(/\$SERVER/g, this.domain) +
-            ":" + this.homeserverDomain;
+        return "@" + this.getUserLocalpart(nick) + ":" + this.homeserverDomain;
     }
 
     public getDisplayNameFromNick(nick: string): string {
@@ -722,6 +738,7 @@ export class IrcServer {
             mappings: {},
             excludedUsers: [],
             matrixClients: {
+                localPartCharacterMapping: 0,
                 userTemplate: "@$SERVER_$NICK",
                 displayName: "$NICK",
                 joinAttempts: -1,
