@@ -89,12 +89,12 @@ const COMMANDS: {[command: string]: Command|Heading} = {
     'Actions': { heading: true },
     "cmd": {
         example: `!cmd [irc.example.net] COMMAND [arg0 [arg1 [...]]]`,
-        summary: "Issue a raw IRC command. These will not produce a reply." +
+        summary: "Issue a raw IRC command. These will not produce a reply. " +
                 "(Note that the command must be all uppercase.)",
     },
     "feature": {
         example: `!feature feature-name [true/false/default]`,
-        summary: `Enable, disable or default a feature's status for your account.` +
+        summary: `Enable, disable or default a feature's status for your account. ` +
                 `Will display the current feature status if true/false/default not given.`,
     },
     "join": {
@@ -428,7 +428,7 @@ export class AdminRoomHandler {
             const keyword = args[0];
 
             // keyword could be a failed server or a malformed command
-            if (!keyword.match(/^[A-Z]+$/)) {
+            if (!keyword.match(/^[A-Za-z]+$/)) {
                 // if not a domain OR is only word (which implies command)
                 if (!keyword.match(/^[a-z0-9:\.-]+$/) || args.length === 1) {
                     throw new Error(`Malformed command: ${keyword}`);
