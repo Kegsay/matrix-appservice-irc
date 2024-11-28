@@ -873,7 +873,7 @@ describe("Admin rooms", function() {
             const newChannel = "#coffee";
 
             // Expect the following commands to be sent in order
-            const recvCommands = ["JOIN", "TOPIC", "PART", "STUPID"];
+            const recvCommands = ["JOIN", "TOPIC", "PART", "STUPID", "lowercase"];
 
             let cmdIx = 0;
             env.ircMock._whenClient(roomMapping.server, userIdNick, "send",
@@ -885,15 +885,15 @@ describe("Admin rooms", function() {
                     cmdIx++;
                 });
 
-            // 4 commands should be executed
             const commands = [
                 `!cmd ${roomMapping.server} JOIN ${newChannel}`,
                 `!cmd ${roomMapping.server} TOPIC ${newChannel} :some new fancy topic`,
                 `!cmd ${roomMapping.server} PART ${newChannel}`,
-                `!cmd ${roomMapping.server} STUPID COMMANDS`];
+                `!cmd ${roomMapping.server} STUPID COMMANDS`,
+                `!cmd ${roomMapping.server} lowercase command`,
+            ];
 
             for (let i = 0; i < commands.length; i++) {
-            // send commands
                 await env.mockAppService._trigger("type:m.room.message", {
                     content: {
                         body: commands[i],
