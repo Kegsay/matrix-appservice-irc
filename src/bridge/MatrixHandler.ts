@@ -21,7 +21,6 @@ import { trackChannelAndCreateRoom } from "./RoomCreation";
 import { renderTemplate } from "../util/Template";
 import { trimString } from "../util/TrimString";
 import { messageDiff } from "../util/MessageDiff";
-import QuickLRU = require("quick-lru");
 
 async function reqHandler(req: BridgeRequest, promise: PromiseLike<unknown>|void) {
     try {
@@ -145,11 +144,6 @@ export class MatrixHandler {
     private memberTracker?: StateLookup;
     private adminHandler: AdminRoomHandler;
     private config: MatrixHandlerConfig = DEFAULTS;
-
-    private memberJoinDefaultTs = Date.now();
-    private memberJoinTs = new QuickLRU<string, number>({
-        maxSize: 8192,
-    });
 
     constructor(
         private readonly ircBridge: IrcBridge,
@@ -413,12 +407,6 @@ export class MatrixHandler {
      * @param {Object} event : The Matrix member event.
      */
     private _onMemberEvent(req: BridgeRequest, event: OnMemberEventData) {
-        if (event.content.membership === 'join') {
-            this.memberJoinTs.set(`${event.room_id}/${event.state_key}`, Date.now());
-        }
-        else {
-            this.memberJoinTs.delete(`${event.room_id}/${event.state_key}`);
-        }
         this.memberTracker?.onEvent(event);
     }
 
@@ -1350,15 +1338,18 @@ export class MatrixHandler {
             rplSource = cachedEvent.body;
         }
 
-        const senderJoinTs = this.memberJoinTs.get(`${event.room_id}/${event.sender}`) ?? this.memberJoinDefaultTs;
-        if (senderJoinTs > cachedEvent.timestamp) {
-            // User joined AFTER the event was sent (or left and joined, but we can't distinguish that).
-            // Do not treat as a reply.
-            req.log.warn(`User ${event.sender} attempted to reply to an event before they were joined`);
-            return {
-                formatted: rplText,
-                reply: rplText,
-            };
+        try {
+            await bridgeIntent.matrixClient.doRequest('GET', `/_matrix/client/v3/rooms/${event.room_id}/event/${replyEventId}?user_id=${event.sender}`);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
+            if (err.body?.errcode === 'M_NOT_FOUND') {
+                req.log.warn(`User ${event.sender} attempted to reply to an event they cannot access`);
+                return {
+                    formatted: rplText,
+                    reply: rplText,
+                };
+            }
+            throw err;
         }
 
         // Get the first non-blank line from the source.

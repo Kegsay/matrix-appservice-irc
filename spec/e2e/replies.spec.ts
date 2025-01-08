@@ -120,21 +120,6 @@ describe('Reply handling', () => {
             event_id: await aliceEventId,
         }, "Oh sorry, I meant bob!");
         expect((await aliceReplyMsgPromise)[2]).toContain(aliceMsgBody);
-
-        // restart the bridge, effectively marking members as "been here forever"
-        await testEnv.recreateBridge();
-        await testEnv.setUp();
-        const postRestartAliceMsg = bob.waitForEvent('message', 10000);
-        const postRestartAliceMsgBody = "Hello post-restart world!";
-        const postRestartAliceEventId = alice.sendText(cRoomId, postRestartAliceMsgBody);
-        await postRestartAliceMsg;
-
-        const postRestartCharlieMsg = bob.waitForEvent('message', 10000);
-        await charlie.replyText(cRoomId, {
-            event_id: await postRestartAliceEventId,
-        }, "Hello alice!");
-        const postRestartCharlieMsgBody = (await postRestartCharlieMsg)[2];
-        expect(postRestartCharlieMsgBody).toContain(postRestartAliceMsgBody);
     });
 
     it('should not leak the contents of messages to leavers', async () => {
