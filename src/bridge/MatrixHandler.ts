@@ -1340,6 +1340,7 @@ export class MatrixHandler {
 
         try {
             await bridgeIntent.matrixClient.doRequest('GET', `/_matrix/client/v3/rooms/${event.room_id}/event/${replyEventId}?user_id=${event.sender}`);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             if (err.body?.errcode === 'M_NOT_FOUND') {
                 req.log.warn(`User ${event.sender} attempted to reply to an event they cannot access`);
@@ -1347,9 +1348,8 @@ export class MatrixHandler {
                     formatted: rplText,
                     reply: rplText,
                 };
-            } else {
-                throw err;
             }
+            throw err;
         }
 
         // Get the first non-blank line from the source.
