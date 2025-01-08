@@ -1338,14 +1338,18 @@ export class MatrixHandler {
             rplSource = cachedEvent.body;
         }
 
-        const canAccessOriginalEvent = await bridgeIntent.matrixClient.doRequest('GET', `/_matrix/client/unstable/net.tadzik/can_user_see_event/${event.room_id}/${event.sender}/${replyEventId}`);
-        if (!canAccessOriginalEvent) {
-            // Do not allow the user to leak an event they couldn't otherwise read
-            req.log.warn(`User ${event.sender} attempted to reply to an event before they were joined`);
-            return {
-                formatted: rplText,
-                reply: rplText,
-            };
+        try {
+            await bridgeIntent.matrixClient.doRequest('GET', `/_matrix/client/v3/rooms/${event.room_id}/event/${replyEventId}?user_id=${event.sender}`);
+        } catch (err: any) {
+            if (err.body?.errcode === 'M_NOT_FOUND') {
+                req.log.warn(`User ${event.sender} attempted to reply to an event they cannot access`);
+                return {
+                    formatted: rplText,
+                    reply: rplText,
+                };
+            } else {
+                throw err;
+            }
         }
 
         // Get the first non-blank line from the source.
